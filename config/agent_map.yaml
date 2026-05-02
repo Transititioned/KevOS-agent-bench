@@ -1,0 +1,30 @@
+agents:
+  strategist:
+    agent_file: agents/strategist.md
+    output_file: strategy-pack.md
+    required_inputs:
+      - intake.md
+
+  builder:
+    agent_file: agents/builder.md
+    output_file: draft-output.md
+    required_inputs:
+      - intake.md
+      - strategy-pack.md
+
+  qa-auditor:
+    agent_file: agents/qa-auditor.md
+    output_file: qa-report.md
+    required_inputs:
+      - intake.md
+      - strategy-pack.md
+      - draft-output.md
+
+  operator:
+    agent_file: agents/operator-chief-of-staff.md
+    output_file: approval-pack.md
+    required_inputs:
+      - intake.md
+      - strategy-pack.md
+      - draft-output.md
+      - qa-report.md
