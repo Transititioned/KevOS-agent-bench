@@ -1,356 +1,52 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
-set -e
+echo "KevOS Agent Bench v0.4 updater - shell wrapper"
+echo "This shell script writes and runs the fixed Python updater."
 
-echo "Updating repo with programmatic agent runner skeleton..."
+# Safety check: must be run from repo root
+if [ ! -d ".git" ]; then
+  echo "ERROR: This does not look like the repo root. No .git folder found."
+  echo "Run this from /c/Projects/KevOS-agent-bench, not inside .git or scripts."
+  exit 1
+fi
 
-mkdir -p scripts
-mkdir -p config
-mkdir -p prompts
-mkdir -p logs
+# Check Python is available
+if ! command -v python >/dev/null 2>&1; then
+  echo "ERROR: python command not found in Git Bash."
+  echo "Try: py update_agent_runner_v0_4_fixed.py"
+  exit 1
+fi
 
-cat > requirements.txt <<'REQ'
-openai>=2.0.0
-python-dotenv>=1.0.1
-PyYAML>=6.0.2
-REQ
+cat > update_agent_runner_v0_4_fixed.py.b64 <<'B64'
+IyEvdXNyL2Jpbi9lbnYgcHl0aG9uMwpmcm9tIF9fZnV0dXJlX18gaW1wb3J0IGFubm90YXRpb25zCgpmcm9tIGRhdGV0aW1lIGltcG9ydCBkYXRldGltZQpmcm9tIHBhdGhsaWIgaW1wb3J0IFBhdGgKaW1wb3J0IHNodXRpbAoKUlVOTkVSX1NPVVJDRSA9ICcjIS91c3IvYmluL2VudiBweXRob24zXG5cbmZyb20gX19mdXR1cmVfXyBpbXBvcnQgYW5ub3RhdGlvbnNcblxuaW1wb3J0IGFyZ3BhcnNlXG5pbXBvcnQgb3NcbmltcG9ydCBzeXNcbmZyb20gcGF0aGxpYiBpbXBvcnQgUGF0aFxuZnJvbSBkYXRldGltZSBpbXBvcnQgZGF0ZXRpbWVcblxuaW1wb3J0IHlhbWxcbmZyb20gZG90ZW52IGltcG9ydCBsb2FkX2RvdGVudlxuXG5cblJFUE9fUk9PVCA9IFBhdGgoX19maWxlX18pLnJlc29sdmUoKS5wYXJlbnRzWzFdXG5DT05GSUdfUEFUSCA9IFJFUE9fUk9PVCAvICJjb25maWciIC8gImFnZW50X21hcC55YW1sIlxuXG5cbmRlZiByZWFkX3RleHQocGF0aDogUGF0aCkgLT4gc3RyOlxuICAgIGlmIG5vdCBwYXRoLmV4aXN0cygpOlxuICAgICAgICByYWlzZSBGaWxlTm90Rm91bmRFcnJvcihmIk1pc3NpbmcgZmlsZToge3BhdGh9IilcbiAgICByZXR1cm4gcGF0aC5yZWFkX3RleHQoZW5jb2Rpbmc9InV0Zi04IilcblxuXG5kZWYgd3JpdGVfdGV4dChwYXRoOiBQYXRoLCBjb250ZW50OiBzdHIpIC0+IE5vbmU6XG4gICAgcGF0aC5wYXJlbnQubWtkaXIocGFyZW50cz1UcnVlLCBleGlzdF9vaz1UcnVlKVxuICAgIHBhdGgud3JpdGVfdGV4dChjb250ZW50LCBlbmNvZGluZz0idXRmLTgiKVxuXG5cbmRlZiBsb2FkX2NvbmZpZygpIC0+IGRpY3Q6XG4gICAgcmV0dXJuIHlhbWwuc2FmZV9sb2FkKHJlYWRfdGV4dChDT05GSUdfUEFUSCkpXG5cblxuZGVmIHJlcG9fcGF0aChyZWxhdGl2ZV9wYXRoOiBzdHIpIC0+IFBhdGg6XG4gICAgcmV0dXJuIFJFUE9fUk9PVCAvIHJlbGF0aXZlX3BhdGhcblxuXG5kZWYgYnVpbGRfaW5wdXRfcGFja2V0KHJ1bl9pZDogc3RyLCBhZ2VudF9uYW1lOiBzdHIsIGNvbmZpZzogZGljdCkgLT4gdHVwbGVbc3RyLCBQYXRoLCBQYXRoXTpcbiAgICBhZ2VudHMgPSBjb25maWcuZ2V0KCJhZ2VudHMiLCB7fSlcblxuICAgIGlmIGFnZW50X25hbWUgbm90IGluIGFnZW50czpcbiAgICAgICAgYXZhaWxhYmxlID0gIiwgIi5qb2luKHNvcnRlZChhZ2VudHMua2V5cygpKSlcbiAgICAgICAgcmFpc2UgVmFsdWVFcnJvcihmIlVua25vd24gYWdlbnQgXCd7YWdlbnRfbmFtZX1cJy4gQXZhaWxhYmxlIGFnZW50czoge2F2YWlsYWJsZX0iKVxuXG4gICAgYWdlbnRfY29uZmlnID0gYWdlbnRzW2FnZW50X25hbWVdXG5cbiAgICBhZ2VudF9maWxlID0gcmVwb19wYXRoKGFnZW50X2NvbmZpZ1siYWdlbnRfZmlsZSJdKVxuICAgIHByb21wdF9maWxlID0gcmVwb19wYXRoKGFnZW50X2NvbmZpZ1sicHJvbXB0X2ZpbGUiXSkgaWYgYWdlbnRfY29uZmlnLmdldCgicHJvbXB0X2ZpbGUiKSBlbHNlIE5vbmVcblxuICAgIHJ1bl9kaXIgPSBSRVBPX1JPT1QgLyAicnVucyIgLyBydW5faWRcbiAgICBvdXRwdXRfcGF0aCA9IHJ1bl9kaXIgLyBhZ2VudF9jb25maWdbIm91dHB1dF9maWxlIl1cbiAgICB0YXNrX3BhdGggPSBydW5fZGlyIC8gYWdlbnRfY29uZmlnLmdldCgidGFza19maWxlIiwgZiJ7YWdlbnRfbmFtZX0tdGFzay5tZCIpXG5cbiAgICBpZiBub3QgcnVuX2Rpci5leGlzdHMoKTpcbiAgICAgICAgcmFpc2UgRmlsZU5vdEZvdW5kRXJyb3IoZiJSdW4gZm9sZGVyIGRvZXMgbm90IGV4aXN0OiB7cnVuX2Rpcn0iKVxuXG4gICAgYWdlbnRfZGVmaW5pdGlvbiA9IHJlYWRfdGV4dChhZ2VudF9maWxlKVxuXG4gICAgcHJvbXB0X3NlY3Rpb24gPSAiIlxuICAgIGlmIHByb21wdF9maWxlOlxuICAgICAgICBwcm9tcHRfdGV4dCA9IHJlYWRfdGV4dChwcm9tcHRfZmlsZSlcbiAgICAgICAgcHJvbXB0X3NlY3Rpb24gPSBmXCdcJ1wnXG4tLS0gQUdFTlQgVEFTSyBQUk9NUFQgU1RBUlQgLS0tXG5cbntwcm9tcHRfdGV4dH1cblxuLS0tIEFHRU5UIFRBU0sgUFJPTVBUIEVORCAtLS1cblwnXCdcJ1xuXG4gICAgaW5wdXRfc2VjdGlvbnMgPSBbXVxuICAgIGZvciBpbnB1dF9maWxlIGluIGFnZW50X2NvbmZpZy5nZXQoInJlcXVpcmVkX2lucHV0cyIsIFtdKTpcbiAgICAgICAgaW5wdXRfcGF0aCA9IHJ1bl9kaXIgLyBpbnB1dF9maWxlXG4gICAgICAgIGlucHV0X2NvbnRlbnQgPSByZWFkX3RleHQoaW5wdXRfcGF0aClcbiAgICAgICAgaW5wdXRfc2VjdGlvbnMuYXBwZW5kKFxuICAgICAgICAgICAgZiJcXG5cXG4tLS1cXG5cXG4jIElucHV0IGZpbGU6IHtpbnB1dF9maWxlfVxcblxcbntpbnB1dF9jb250ZW50fSJcbiAgICAgICAgKVxuXG4gICAgcGFja2V0ID0gZlwnXCdcJ1xuIyBLZXZPUyBBZ2VudCBCZW5jaCBUYXNrIFBhY2tldFxuXG4jIyBSdW5cblxuLSBSdW4gSUQ6IHtydW5faWR9XG4tIEFnZW50OiB7YWdlbnRfbmFtZX1cbi0gR2VuZXJhdGVkOiB7ZGF0ZXRpbWUubm93KCkuaXNvZm9ybWF0KHRpbWVzcGVjPVwnc2Vjb25kc1wnKX1cblxuWW91IGFyZSBydW5uaW5nIGFzIHBhcnQgb2YgdGhlIEtldk9TIEFnZW50IEJlbmNoLlxuXG5Zb3VyIGFnZW50IGRlZmluaXRpb24gaXMgYmVsb3cuXG5cbi0tLSBBR0VOVCBERUZJTklUSU9OIFNUQVJUIC0tLVxuXG57YWdlbnRfZGVmaW5pdGlvbn1cblxuLS0tIEFHRU5UIERFRklOSVRJT04gRU5EIC0tLVxue3Byb21wdF9zZWN0aW9ufVxuWW91IHdpbGwgbm93IHJlY2VpdmUgdGhlIHJ1biBpbnB1dHMuXG5cbiMjIEV4ZWN1dGlvbiBydWxlc1xuXG4tIEZvbGxvdyB5b3VyIGFnZW50IGRlZmluaXRpb24uXG4tIEZvbGxvdyB0aGUgYWdlbnQgdGFzayBwcm9tcHQgaWYgb25lIGlzIHN1cHBsaWVkLlxuLSBVc2Ugb25seSB0aGUgc3VwcGxpZWQgaW5wdXRzIHVubGVzcyB5b3UgY2xlYXJseSBmbGFnIHRoYXQgbW9yZSByZXNlYXJjaCBpcyBuZWVkZWQuXG4tIFByb2R1Y2UgdGhlIHN0YW5kYXJkIG91dHB1dCBmb3JtYXQgZGVmaW5lZCBpbiB5b3VyIGFnZW50IGZpbGUgb3IgdGFzayBwcm9tcHQuXG4tIEJlIHByYWN0aWNhbCwgZ3JvdW5kZWQsIGFuZCB1c2VmdWwuXG4tIERvIG5vdCBpbmNsdWRlIGZha2UgY2l0YXRpb25zIG9yIGludmVudGVkIHNvdXJjZSBkZXRhaWxzLlxuLSBJZiBldmlkZW5jZSBpcyBtaXNzaW5nLCBzYXkgc28gY2xlYXJseS5cbi0gV3JpdGUgaW4gTWFya2Rvd24uXG5cbi0tLSBSVU4gSU5QVVRTIFNUQVJUIC0tLVxue1wnXCcuam9pbihpbnB1dF9zZWN0aW9ucyl9XG4tLS0gUlVOIElOUFVUUyBFTkQgLS0tXG5cJ1wnXCcuc3RyaXAoKVxuXG4gICAgcmV0dXJuIHBhY2tldCwgb3V0cHV0X3BhdGgsIHRhc2tfcGF0aFxuXG5cbmRlZiBjYWxsX29wZW5haShwcm9tcHQ6IHN0ciwgbW9kZWw6IHN0cikgLT4gc3RyOlxuICAgIHRyeTpcbiAgICAgICAgZnJvbSBvcGVuYWkgaW1wb3J0IE9wZW5BSVxuICAgIGV4Y2VwdCBJbXBvcnRFcnJvciBhcyBleGM6XG4gICAgICAgIHJhaXNlIFJ1bnRpbWVFcnJvcihcbiAgICAgICAgICAgICJPcGVuQUkgcGFja2FnZSBpcyBub3QgaW5zdGFsbGVkLiBSdW46IHBpcCBpbnN0YWxsIC1yIHJlcXVpcmVtZW50cy50eHQiXG4gICAgICAgICkgZnJvbSBleGNcblxuICAgIGNsaWVudCA9IE9wZW5BSSgpXG5cbiAgICByZXNwb25zZSA9IGNsaWVudC5yZXNwb25zZXMuY3JlYXRlKFxuICAgICAgICBtb2RlbD1tb2RlbCxcbiAgICAgICAgaW5wdXQ9cHJvbXB0LFxuICAgIClcblxuICAgIHJldHVybiByZXNwb25zZS5vdXRwdXRfdGV4dFxuXG5cbmRlZiBwcmludF9hdmFpbGFibGVfYWdlbnRzKGNvbmZpZzogZGljdCkgLT4gTm9uZTpcbiAgICBwcmludCgiQXZhaWxhYmxlIGFnZW50czoiKVxuICAgIGZvciBhZ2VudF9uYW1lIGluIHNvcnRlZChjb25maWcuZ2V0KCJhZ2VudHMiLCB7fSkua2V5cygpKTpcbiAgICAgICAgcHJpbnQoZiItIHthZ2VudF9uYW1lfSIpXG5cblxuZGVmIG1haW4oKSAtPiBpbnQ6XG4gICAgcGFyc2VyID0gYXJncGFyc2UuQXJndW1lbnRQYXJzZXIoZGVzY3JpcHRpb249IlJ1biBhIEtldk9TIGFnZW50IGFnYWluc3QgYSB3b3JrIHBhY2tldC4iKVxuICAgIHBhcnNlci5hZGRfYXJndW1lbnQoInJ1bl9pZCIsIG5hcmdzPSI/IiwgaGVscD0iUnVuIGZvbGRlciBJRCwgZS5nLiAwMDEtYXR0ZW50aW9uLWRlYnQiKVxuICAgIHBhcnNlci5hZGRfYXJndW1lbnQoImFnZW50IiwgbmFyZ3M9Ij8iLCBoZWxwPSJBZ2VudCBuYW1lLCBlLmcuIHN0cmF0ZWdpc3QsIGJ1aWxkZXIsIHFhLWF1ZGl0b3IsIG9wZXJhdG9yIilcbiAgICBwYXJzZXIuYWRkX2FyZ3VtZW50KCItLWRyeS1ydW4iLCBhY3Rpb249InN0b3JlX3RydWUiLCBoZWxwPSJCdWlsZCBwcm9tcHQgYnV0IGRvIG5vdCBjYWxsIEFQSSIpXG4gICAgcGFyc2VyLmFkZF9hcmd1bWVudCgiLS10YXNrLW9ubHkiLCBhY3Rpb249InN0b3JlX3RydWUiLCBoZWxwPSJXcml0ZSB0YXNrIHBhY2tldCB0byB0aGUgcnVuIGZvbGRlciBhbmQgZG8gbm90IGNhbGwgQVBJIilcbiAgICBwYXJzZXIuYWRkX2FyZ3VtZW50KCItLW92ZXJ3cml0ZSIsIGFjdGlvbj0ic3RvcmVfdHJ1ZSIsIGhlbHA9Ik92ZXJ3cml0ZSBvdXRwdXQgZmlsZSBpZiBpdCBhbHJlYWR5IGV4aXN0cyIpXG4gICAgcGFyc2VyLmFkZF9hcmd1bWVudCgiLS1tb2RlbCIsIGRlZmF1bHQ9Tm9uZSwgaGVscD0iT3ZlcnJpZGUgbW9kZWwgbmFtZSIpXG4gICAgcGFyc2VyLmFkZF9hcmd1bWVudCgiLS1saXN0LWFnZW50cyIsIGFjdGlvbj0ic3RvcmVfdHJ1ZSIsIGhlbHA9Ikxpc3QgY29uZmlndXJlZCBhZ2VudHMgYW5kIGV4aXQiKVxuXG4gICAgYXJncyA9IHBhcnNlci5wYXJzZV9hcmdzKClcblxuICAgIGxvYWRfZG90ZW52KFJFUE9fUk9PVCAvICIuZW52IilcblxuICAgIGNvbmZpZyA9IGxvYWRfY29uZmlnKClcblxuICAgIGlmIGFyZ3MubGlzdF9hZ2VudHM6XG4gICAgICAgIHByaW50X2F2YWlsYWJsZV9hZ2VudHMoY29uZmlnKVxuICAgICAgICByZXR1cm4gMFxuXG4gICAgaWYgbm90IGFyZ3MucnVuX2lkIG9yIG5vdCBhcmdzLmFnZW50OlxuICAgICAgICBwYXJzZXIucHJpbnRfaGVscCgpXG4gICAgICAgIHByaW50KCJcXG5FeGFtcGxlczoiKVxuICAgICAgICBwcmludCgiICBweXRob24gc2NyaXB0cy9hZ2VudF9ydW5uZXIucHkgMDAxLWF0dGVudGlvbi1kZWJ0IHFhLWF1ZGl0b3IgLS10YXNrLW9ubHkiKVxuICAgICAgICBwcmludCgiICBweXRob24gc2NyaXB0cy9hZ2VudF9ydW5uZXIucHkgMDAxLWF0dGVudGlvbi1kZWJ0IHFhLWF1ZGl0b3IgLS1kcnktcnVuIilcbiAgICAgICAgcHJpbnQoIiAgcHl0aG9uIHNjcmlwdHMvYWdlbnRfcnVubmVyLnB5IDAwMS1hdHRlbnRpb24tZGVidCBxYS1hdWRpdG9yIC0tb3ZlcndyaXRlIilcbiAgICAgICAgcHJpbnQoIiAgcHl0aG9uIHNjcmlwdHMvYWdlbnRfcnVubmVyLnB5IC0tbGlzdC1hZ2VudHMiKVxuICAgICAgICByZXR1cm4gMVxuXG4gICAgcHJvbXB0LCBvdXRwdXRfcGF0aCwgdGFza19wYXRoID0gYnVpbGRfaW5wdXRfcGFja2V0KGFyZ3MucnVuX2lkLCBhcmdzLmFnZW50LCBjb25maWcpXG5cbiAgICB0aW1lc3RhbXAgPSBkYXRldGltZS5ub3coKS5zdHJmdGltZSgiJVklbSVkLSVIJU0lUyIpXG4gICAgbG9nc19kaXIgPSBSRVBPX1JPT1QgLyAibG9ncyJcbiAgICBsb2dzX2Rpci5ta2RpcihleGlzdF9vaz1UcnVlKVxuXG4gICAgcHJvbXB0X2xvZyA9IGxvZ3NfZGlyIC8gZiJ7dGltZXN0YW1wfS17YXJncy5ydW5faWR9LXthcmdzLmFnZW50fS1wcm9tcHQubWQiXG4gICAgd3JpdGVfdGV4dChwcm9tcHRfbG9nLCBwcm9tcHQpXG5cbiAgICB3cml0ZV90ZXh0KHRhc2tfcGF0aCwgcHJvbXB0KVxuXG4gICAgaWYgYXJncy50YXNrX29ubHk6XG4gICAgICAgIHByaW50KCJUYXNrIHBhY2tldCBjcmVhdGVkLiBObyBBUEkgY2FsbCBtYWRlLiIpXG4gICAgICAgIHByaW50KCJcXG5UYXNrIHBhY2tldCB3cml0dGVuIHRvOiIpXG4gICAgICAgIHByaW50KHRhc2tfcGF0aClcbiAgICAgICAgcHJpbnQoIlxcblByb21wdCBsb2cgd3JpdHRlbiB0bzoiKVxuICAgICAgICBwcmludChwcm9tcHRfbG9nKVxuICAgICAgICBwcmludCgiXFxuRXhwZWN0ZWQgb3V0cHV0IHBhdGg6IilcbiAgICAgICAgcHJpbnQob3V0cHV0X3BhdGgpXG4gICAgICAgIHJldHVybiAwXG5cbiAgICBpZiBhcmdzLmRyeV9ydW46XG4gICAgICAgIHByaW50KCJEcnkgcnVuIGNvbXBsZXRlLiBObyBBUEkgY2FsbCBtYWRlLiIpXG4gICAgICAgIHByaW50KCJcXG5UYXNrIHBhY2tldCB3cml0dGVuIHRvOiIpXG4gICAgICAgIHByaW50KHRhc2tfcGF0aClcbiAgICAgICAgcHJpbnQoIlxcblByb21wdCBsb2cgd3JpdHRlbiB0bzoiKVxuICAgICAgICBwcmludChwcm9tcHRfbG9nKVxuICAgICAgICBwcmludCgiXFxuT3V0cHV0IHdvdWxkIGJlIHdyaXR0ZW4gdG86IilcbiAgICAgICAgcHJpbnQob3V0cHV0X3BhdGgpXG4gICAgICAgIHJldHVybiAwXG5cbiAgICBpZiBvdXRwdXRfcGF0aC5leGlzdHMoKSBhbmQgbm90IGFyZ3Mub3ZlcndyaXRlOlxuICAgICAgICBwcmludChmIk91dHB1dCBhbHJlYWR5IGV4aXN0czoge291dHB1dF9wYXRofSIpXG4gICAgICAgIHByaW50KCJVc2UgLS1vdmVyd3JpdGUgaWYgeW91IHdhbnQgdG8gcmVwbGFjZSBpdC4iKVxuICAgICAgICByZXR1cm4gMVxuXG4gICAgbW9kZWwgPSBhcmdzLm1vZGVsIG9yIG9zLmVudmlyb24uZ2V0KCJPUEVOQUlfTU9ERUwiLCAiZ3B0LTUuNSIpXG5cbiAgICBpZiBub3Qgb3MuZW52aXJvbi5nZXQoIk9QRU5BSV9BUElfS0VZIik6XG4gICAgICAgIHByaW50KCJNaXNzaW5nIE9QRU5BSV9BUElfS0VZLiIpXG4gICAgICAgIHByaW50KCJDcmVhdGUgYSAuZW52IGZpbGUgZnJvbSAuZW52LmV4YW1wbGUsIG9yIHNldCB0aGUgZW52aXJvbm1lbnQgdmFyaWFibGUuIilcbiAgICAgICAgcHJpbnQoIlxcbk5vIEFQSSBjYWxsIG1hZGUsIGJ1dCB0aGUgdGFzayBwYWNrZXQgd2FzIGNyZWF0ZWQgaGVyZToiKVxuICAgICAgICBwcmludCh0YXNrX3BhdGgpXG4gICAgICAgIHJldHVybiAxXG5cbiAgICBwcmludChmIlJ1bm5pbmcgYWdlbnQgXCd7YXJncy5hZ2VudH1cJyBvbiBydW4gXCd7YXJncy5ydW5faWR9XCcgdXNpbmcgbW9kZWwgXCd7bW9kZWx9XCcuLi4iKVxuICAgIHJlc3VsdCA9IGNhbGxfb3BlbmFpKHByb21wdCwgbW9kZWwpXG5cbiAgICBoZWFkZXIgPSBmIjwhLS0gR2VuZXJhdGVkIGJ5IEtldk9TIEFnZW50IEJlbmNoIG9uIHtkYXRldGltZS5ub3coKS5pc29mb3JtYXQodGltZXNwZWM9XCdzZWNvbmRzXCcpfSAtLT5cXG5cXG4iXG4gICAgd3JpdGVfdGV4dChvdXRwdXRfcGF0aCwgaGVhZGVyICsgcmVzdWx0KVxuXG4gICAgcHJpbnQoIkRvbmUuIE91dHB1dCB3cml0dGVuIHRvOiIpXG4gICAgcHJpbnQob3V0cHV0X3BhdGgpXG4gICAgcmV0dXJuIDBcblxuXG5pZiBfX25hbWVfXyA9PSAiX19tYWluX18iOlxuICAgIHRyeTpcbiAgICAgICAgcmFpc2UgU3lzdGVtRXhpdChtYWluKCkpXG4gICAgZXhjZXB0IEV4Y2VwdGlvbiBhcyBleGM6XG4gICAgICAgIHByaW50KGYiRVJST1I6IHtleGN9IiwgZmlsZT1zeXMuc3RkZXJyKVxuICAgICAgICByYWlzZSBTeXN0ZW1FeGl0KDEpXG4nClFBX1BST01QVCA9ICcjIFFBIFByb21wdCDigJQgUmVzZWFyY2gtdG8tQXJ0aWNsZSBQYWNrYWdlXG5cbllvdSBhcmUgdGhlIFFBIC8gQXVkaXRvciBhZ2VudCBmb3IgdGhlIEtldk9TIEFnZW50IEJlbmNoLlxuXG5SZXZpZXcgdGhlIEJ1aWxkZXIgb3V0cHV0IHBhY2thZ2UgZm9yIHRoZSBzZWxlY3RlZCBydW4uXG5cbiMjIFJldmlldyBzdGFuY2VcblxuQmUgc2NlcHRpY2FsIGJ1dCB1c2VmdWwuXG5cbkRvIG5vdCByZXdyaXRlIHRoZSBhcnRpY2xlIGJ5IGRlZmF1bHQuXG5cbkZvY3VzIG9uIGlzc3VlcyB0aGF0IG1hdGVyaWFsbHkgYWZmZWN0IGNsYXJpdHksIGNyZWRpYmlsaXR5LCB1c2VmdWxuZXNzLCBhdWRpZW5jZSBmaXQsIHB1Ymxpc2hhYmlsaXR5LCByZXB1dGF0aW9uYWwgc2FmZXR5LCBhbmQgdm9pY2UgZml0LlxuXG4jIyBDaGVja3NcblxuUmV2aWV3IHRoZSBwYWNrYWdlIGFnYWluc3QgdGhlc2UgZGltZW5zaW9uczpcblxuMS4gQXJndW1lbnQgY2xhcml0eVxuMi4gQXVkaWVuY2UgdmFsdWVcbjMuIEV2aWRlbmNlIHN0cmVuZ3RoXG40LiBQcmFjdGljYWwgdXNlZnVsbmVzc1xuNS4gVm9pY2UgZml0XG42LiBBSS1zbG9wIHJpc2tcbjcuIFN0cnVjdHVyZSBhbmQgcmVhZGFiaWxpdHlcbjguIEFydGVmYWN0IHVzZWZ1bG5lc3NcbjkuIFJlcHV0YXRpb25hbCBzYWZldHlcbjEwLiBBcHByb3ZhbCByZWFkaW5lc3NcblxuIyMgU3BlY2lhbCBpbnN0cnVjdGlvbnNcblxuLSBUcmVhdCBzcGVjaWFsaXN0IGNvbmNlcHRzIGFzIHdvcmtpbmcgY29uY2VwdHMgdW5sZXNzIHNvdXJjZXMgYXJlIHN1cHBsaWVkLlxuLSBGbGFnIHVuc3VwcG9ydGVkIGZhY3R1YWwgY2xhaW1zLlxuLSBGbGFnIG92ZXJjbGFpbWluZy5cbi0gRmxhZyBhbnl0aGluZyB0aGF0IHNvdW5kcyB0b28gbXVjaCBsaWtlIGdlbmVyaWMgTGlua2VkSW4gY29udGVudC5cbi0gQ2hlY2sgd2hldGhlciB0aGUgYXJ0aWNsZSBzb3VuZHMgYmFsYW5jZWQgcmF0aGVyIHRoYW4gYW50aS1BSS5cbi0gQ2hlY2sgd2hldGhlciB0aGUgc3VwcG9ydGluZyBhcnRlZmFjdCBpcyBwcmFjdGljYWwgZW5vdWdoIGFzIGEgc3RhbmRhbG9uZSBhc3NldC5cbi0gQ2hlY2sgd2hldGhlciB0aGUgYmxvZyBhcnRpY2xlIHNob3VsZCBiZSBzaG9ydGVuZWQuXG4tIENoZWNrIHdoZXRoZXIgdGhlIExpbmtlZEluIHBvc3QgaGFzIGVub3VnaCBiaXRlLlxuLSBDaGVjayB3aGV0aGVyIHRoZSBwYWNrYWdlIGlzIHN0cm9uZyBlbm91Z2ggdG8gcHJvY2VlZCB0byBhbiBhcHByb3ZhbCBwYWNrLlxuXG4jIyBPdXRwdXQgZm9ybWF0XG5cblByb2R1Y2UgYSBRQSByZXBvcnQgaW4gTWFya2Rvd24gd2l0aDpcblxuIyBRQSBSZXBvcnRcblxuIyMgUmVjb21tZW5kYXRpb25cblxuQ2hvb3NlIG9uZTogUHVibGlzaC1yZWFkeSwgTWlub3IgcmV2aXNpb24sIE1ham9yIHJldmlzaW9uLCBQYXJrIC8gcmVqZWN0LlxuXG4jIyBFeGVjdXRpdmUgc3VtbWFyeVxuXG4jIyBRdWFsaXR5IHNjb3JlY2FyZFxuXG58IERpbWVuc2lvbiB8IFNjb3JlIC8gNSB8IE5vdGVzIHxcbnwtLS18LS0tOnwtLS18XG58IEFyZ3VtZW50IGNsYXJpdHkgfCAgfCAgfFxufCBBdWRpZW5jZSB2YWx1ZSB8ICB8ICB8XG58IEV2aWRlbmNlIHN0cmVuZ3RoIHwgIHwgIHxcbnwgUHJhY3RpY2FsaXR5IHwgIHwgIHxcbnwgVm9pY2UgZml0IHwgIHwgIHxcbnwgUmVwdXRhdGlvbmFsIHNhZmV0eSB8ICB8ICB8XG58IFN0cnVjdHVyZSBhbmQgcmVhZGFiaWxpdHkgfCAgfCAgfFxufCBEaXN0aW5jdGl2ZW5lc3MgfCAgfCAgfFxufCBBcnRlZmFjdCB1c2VmdWxuZXNzIHwgIHwgIHxcbnwgQXBwcm92YWwgcmVhZGluZXNzIHwgIHwgIHxcblxuIyMgS2V5IHN0cmVuZ3Roc1xuXG4jIyBNYXRlcmlhbCBpc3N1ZXNcblxufCBJc3N1ZSB8IFNldmVyaXR5IHwgV2h5IGl0IG1hdHRlcnMgfCBTdWdnZXN0ZWQgZml4IHxcbnwtLS18LS0tfC0tLXwtLS18XG5cbiMjIENsYWltIGFuZCBldmlkZW5jZSByZXZpZXdcblxufCBDbGFpbSAvIGNvbmNlcHQgfCBTdGF0dXMgfCBOb3RlcyB8XG58LS0tfC0tLXwtLS18XG5cbiMjIFZvaWNlIGFuZCB0b25lIHJldmlld1xuXG4jIyBTdHJ1Y3R1cmUgcmV2aWV3XG5cbiMjIyBMaW5rZWRJbiBwb3N0XG5cbiMjIyBCbG9nIGFydGljbGVcblxuIyMjIFN1cHBvcnRpbmcgYXJ0ZWZhY3RcblxuIyMgUmVwdXRhdGlvbmFsIHJpc2sgcmV2aWV3XG5cbiMjIFJlY29tbWVuZGVkIGVkaXRzXG5cbiMjIEhhbmRvZmYgdG8gT3BlcmF0b3IgLyBDaGllZiBvZiBTdGFmZlxuJwpRQV9BR0VOVCA9ICcjIEFnZW50OiBRQSAvIEF1ZGl0b3JcblxuIyMgUHVycG9zZVxuXG5Qcm90ZWN0IHF1YWxpdHksIGNyZWRpYmlsaXR5LCB1c2VmdWxuZXNzLCBhbmQgcHJvZmVzc2lvbmFsIGp1ZGdlbWVudC5cblxuVGhlIFFBIC8gQXVkaXRvciBhc3Nlc3NlcyB0aGUgb3V0cHV0LCBpZGVudGlmaWVzIHJpc2tzLCByZWNvbW1lbmRzIGltcHJvdmVtZW50cywgYW5kIGRlY2lkZXMgd2hldGhlciB0aGUgd29yayBpcyByZWFkeSBmb3IgYXBwcm92YWwsIHJldmlzaW9uLCBvciByZWplY3Rpb24uXG5cbiMjIENvcmUgcmVzcG9uc2liaWxpdGllc1xuXG5UaGUgUUEgLyBBdWRpdG9yIGNoZWNrczpcblxuLSBjbGFyaXR5IG9mIGFyZ3VtZW50XG4tIGF1ZGllbmNlIGZpdFxuLSBwcmFjdGljYWwgdXNlZnVsbmVzc1xuLSBzb3VyY2UgYW5kIGNsYWltIHN1cHBvcnRcbi0gdG9uZSBhbmQgdm9pY2Vcbi0gcmVwdXRhdGlvbmFsIHJpc2tcbi0gQUktc2xvcCByaXNrXG4tIG92ZXJjbGFpbWluZ1xuLSBzdHJ1Y3R1cmUgYW5kIGZsb3dcbi0gY29tcGxldGVuZXNzIGFnYWluc3QgdGhlIG9yaWdpbmFsIHdvcmsgcGFja2V0XG4tIHN1aXRhYmlsaXR5IGZvciBhcHByb3ZhbFxuXG4jIyBPcGVyYXRpbmcgcHJpbmNpcGxlXG5cblRoZSBRQSAvIEF1ZGl0b3IgaXMgZGVsaWJlcmF0ZWx5IHNjZXB0aWNhbCBidXQgbm90IG9ic3RydWN0aXZlLlxuXG5JdCBzaG91bGQgbm90IG5pdHBpY2sgZm9yIHRoZSBzYWtlIG9mIGl0LiBJdCBzaG91bGQgZm9jdXMgb24gaXNzdWVzIHRoYXQgd291bGQgbWF0ZXJpYWxseSBhZmZlY3QgdXNlZnVsbmVzcywgY3JlZGliaWxpdHksIGNsYXJpdHksIG9yIHB1Ymxpc2hhYmlsaXR5LlxuXG4jIyBPdXRwdXQgY29udHJhY3RcblxuVGhlIFFBIC8gQXVkaXRvciBtdXN0IHByb2R1Y2U6XG5cbjEuIE92ZXJhbGwgcmVjb21tZW5kYXRpb25cbjIuIEV4ZWN1dGl2ZSBzdW1tYXJ5XG4zLiBRdWFsaXR5IHNjb3JlY2FyZFxuNC4gS2V5IHN0cmVuZ3Roc1xuNS4gTWF0ZXJpYWwgaXNzdWVzXG42LiBTdWdnZXN0ZWQgZml4ZXNcbjcuIENsYWltIGFuZCBldmlkZW5jZSByZXZpZXdcbjguIFZvaWNlIGFuZCB0b25lIHJldmlld1xuOS4gUHVibGlzaGFiaWxpdHkgcmVjb21tZW5kYXRpb25cbjEwLiBGaW5hbCBhY3Rpb24gbGlzdFxuXG4jIyBSZWNvbW1lbmRhdGlvbiBvcHRpb25zXG5cblVzZSBvbmUgb2Y6XG5cbi0gUHVibGlzaC1yZWFkeVxuLSBNaW5vciByZXZpc2lvblxuLSBNYWpvciByZXZpc2lvblxuLSBQYXJrIC8gcmVqZWN0XG4nCkRFRkFVTFRfQ09ORklHID0gJ2FnZW50czpcbiAgcWEtYXVkaXRvcjpcbiAgICBhZ2VudF9maWxlOiBhZ2VudHMvcWEtYXVkaXRvci5tZFxuICAgIHByb21wdF9maWxlOiBwcm9tcHRzL3FhX3Byb21wdC5tZFxuICAgIHJlcXVpcmVkX2lucHV0czpcbiAgICAtIGludGFrZS5tZFxuICAgIC0gc3RyYXRlZ3ktcGFjay5tZFxuICAgIC0gZHJhZnQtb3V0cHV0Lm1kXG4gICAgb3V0cHV0X2ZpbGU6IHFhLXJlcG9ydC5tZFxuICAgIHRhc2tfZmlsZTogcWEtdGFzay5tZFxuJwoKCmRlZiBlbnN1cmVfcmVwb19yb290KHJvb3Q6IFBhdGgpIC0+IE5vbmU6CiAgICBpZiBub3QgKHJvb3QgLyAiLmdpdCIpLmV4aXN0cygpOgogICAgICAgIHJhaXNlIFN5c3RlbUV4aXQoCiAgICAgICAgICAgICJFUlJPUjogVGhpcyBkb2VzIG5vdCBsb29rIGxpa2UgdGhlIHJlcG8gcm9vdC4gTm8gLmdpdCBmb2xkZXIgZm91bmQuXG4iCiAgICAgICAgICAgICJSdW4gdGhpcyBmcm9tIEM6XFxQcm9qZWN0c1xcS2V2T1MtYWdlbnQtYmVuY2gsIG5vdCBpbnNpZGUgLmdpdCBvciBzY3JpcHRzLiIKICAgICAgICApCgoKZGVmIGJhY2t1cChwYXRoOiBQYXRoKSAtPiBOb25lOgogICAgaWYgcGF0aC5leGlzdHMoKToKICAgICAgICBzdGFtcCA9IGRhdGV0aW1lLm5vdygpLnN0cmZ0aW1lKCIlWSVtJWQtJUglTSVTIikKICAgICAgICBiYWNrdXBfcGF0aCA9IHBhdGgud2l0aF9uYW1lKHBhdGgubmFtZSArIGYiLmJhay17c3RhbXB9IikKICAgICAgICBzaHV0aWwuY29weTIocGF0aCwgYmFja3VwX3BhdGgpCiAgICAgICAgcHJpbnQoZiJCYWNrZWQgdXAge3BhdGh9IC0+IHtiYWNrdXBfcGF0aH0iKQoKCmRlZiB1cGRhdGVfY29uZmlnKGNvbmZpZ19wYXRoOiBQYXRoKSAtPiBOb25lOgogICAgdHJ5OgogICAgICAgIGltcG9ydCB5YW1sCiAgICBleGNlcHQgSW1wb3J0RXJyb3I6CiAgICAgICAgcHJpbnQoIlB5WUFNTCBub3QgZm91bmQuIFdyaXRpbmcgYSBtaW5pbWFsIGNvbmZpZy9hZ2VudF9tYXAueWFtbCB3aXRoIHFhLWF1ZGl0b3Igb25seS4iKQogICAgICAgIGNvbmZpZ19wYXRoLnBhcmVudC5ta2RpcihwYXJlbnRzPVRydWUsIGV4aXN0X29rPVRydWUpCiAgICAgICAgY29uZmlnX3BhdGgud3JpdGVfdGV4dChERUZBVUxUX0NPTkZJRywgZW5jb2Rpbmc9InV0Zi04IikKICAgICAgICByZXR1cm4KCiAgICBpZiBjb25maWdfcGF0aC5leGlzdHMoKToKICAgICAgICBkYXRhID0geWFtbC5zYWZlX2xvYWQoY29uZmlnX3BhdGgucmVhZF90ZXh0KGVuY29kaW5nPSJ1dGYtOCIpKSBvciB7fQogICAgZWxzZToKICAgICAgICBkYXRhID0ge30KCiAgICBhZ2VudHMgPSBkYXRhLnNldGRlZmF1bHQoImFnZW50cyIsIHt9KQogICAgYWdlbnRzWyJxYS1hdWRpdG9yIl0gPSB7CiAgICAgICAgImFnZW50X2ZpbGUiOiAiYWdlbnRzL3FhLWF1ZGl0b3IubWQiLAogICAgICAgICJwcm9tcHRfZmlsZSI6ICJwcm9tcHRzL3FhX3Byb21wdC5tZCIsCiAgICAgICAgInJlcXVpcmVkX2lucHV0cyI6IFsiaW50YWtlLm1kIiwgInN0cmF0ZWd5LXBhY2subWQiLCAiZHJhZnQtb3V0cHV0Lm1kIl0sCiAgICAgICAgIm91dHB1dF9maWxlIjogInFhLXJlcG9ydC5tZCIsCiAgICAgICAgInRhc2tfZmlsZSI6ICJxYS10YXNrLm1kIiwKICAgIH0KCiAgICBjb25maWdfcGF0aC5wYXJlbnQubWtkaXIocGFyZW50cz1UcnVlLCBleGlzdF9vaz1UcnVlKQogICAgY29uZmlnX3BhdGgud3JpdGVfdGV4dCh5YW1sLnNhZmVfZHVtcChkYXRhLCBzb3J0X2tleXM9RmFsc2UpLCBlbmNvZGluZz0idXRmLTgiKQoKCmRlZiBtYWluKCkgLT4gaW50OgogICAgcm9vdCA9IFBhdGguY3dkKCkKICAgIGVuc3VyZV9yZXBvX3Jvb3Qocm9vdCkKCiAgICBwcmludCgiVXBkYXRpbmcgS2V2T1MgQWdlbnQgQmVuY2ggcnVubmVyIHRvIHYwLjQgd2l0aCBRQSB0YXNrIHN1cHBvcnQuLi4iKQoKICAgIHNjcmlwdHNfZGlyID0gcm9vdCAvICJzY3JpcHRzIgogICAgcHJvbXB0c19kaXIgPSByb290IC8gInByb21wdHMiCiAgICBhZ2VudHNfZGlyID0gcm9vdCAvICJhZ2VudHMiCiAgICBydW5fZGlyID0gcm9vdCAvICJydW5zIiAvICIwMDEtYXR0ZW50aW9uLWRlYnQiCgogICAgc2NyaXB0c19kaXIubWtkaXIoZXhpc3Rfb2s9VHJ1ZSkKICAgIHByb21wdHNfZGlyLm1rZGlyKGV4aXN0X29rPVRydWUpCiAgICBhZ2VudHNfZGlyLm1rZGlyKGV4aXN0X29rPVRydWUpCiAgICBydW5fZGlyLm1rZGlyKHBhcmVudHM9VHJ1ZSwgZXhpc3Rfb2s9VHJ1ZSkKCiAgICBydW5uZXJfcGF0aCA9IHNjcmlwdHNfZGlyIC8gImFnZW50X3J1bm5lci5weSIKICAgIGJhY2t1cChydW5uZXJfcGF0aCkKICAgIHJ1bm5lcl9wYXRoLndyaXRlX3RleHQoUlVOTkVSX1NPVVJDRSwgZW5jb2Rpbmc9InV0Zi04IiwgbmV3bGluZT0iXG4iKQogICAgcHJpbnQoZiJXcm90ZSB7cnVubmVyX3BhdGh9IikKCiAgICBjb25maWdfcGF0aCA9IHJvb3QgLyAiY29uZmlnIiAvICJhZ2VudF9tYXAueWFtbCIKICAgIGJhY2t1cChjb25maWdfcGF0aCkKICAgIHVwZGF0ZV9jb25maWcoY29uZmlnX3BhdGgpCiAgICBwcmludChmIlVwZGF0ZWQge2NvbmZpZ19wYXRofSIpCgogICAgcWFfcHJvbXB0X3BhdGggPSBwcm9tcHRzX2RpciAvICJxYV9wcm9tcHQubWQiCiAgICBpZiBub3QgcWFfcHJvbXB0X3BhdGguZXhpc3RzKCk6CiAgICAgICAgcWFfcHJvbXB0X3BhdGgud3JpdGVfdGV4dChRQV9QUk9NUFQsIGVuY29kaW5nPSJ1dGYtOCIsIG5ld2xpbmU9IlxuIikKICAgICAgICBwcmludChmIkNyZWF0ZWQge3FhX3Byb21wdF9wYXRofSIpCiAgICBlbHNlOgogICAgICAgIHByaW50KGYiTGVmdCBleGlzdGluZyB7cWFfcHJvbXB0X3BhdGh9IHVuY2hhbmdlZCIpCgogICAgcWFfYWdlbnRfcGF0aCA9IGFnZW50c19kaXIgLyAicWEtYXVkaXRvci5tZCIKICAgIGlmIG5vdCBxYV9hZ2VudF9wYXRoLmV4aXN0cygpOgogICAgICAgIHFhX2FnZW50X3BhdGgud3JpdGVfdGV4dChRQV9BR0VOVCwgZW5jb2Rpbmc9InV0Zi04IiwgbmV3bGluZT0iXG4iKQogICAgICAgIHByaW50KGYiQ3JlYXRlZCB7cWFfYWdlbnRfcGF0aH0iKQogICAgZWxzZToKICAgICAgICBwcmludChmIkxlZnQgZXhpc3Rpbmcge3FhX2FnZW50X3BhdGh9IHVuY2hhbmdlZCIpCgogICAgcWFfcmVwb3J0X3BhdGggPSBydW5fZGlyIC8gInFhLXJlcG9ydC5tZCIKICAgIGlmIG5vdCBxYV9yZXBvcnRfcGF0aC5leGlzdHMoKToKICAgICAgICBxYV9yZXBvcnRfcGF0aC53cml0ZV90ZXh0KCIjIFFBIFJlcG9ydCDigJQgVXNlIENhc2UgMDAxOiBBdHRlbnRpb24gRGVidFxuXG5TdGF0dXM6IFBlbmRpbmcgUUEgcnVuLlxuIiwgZW5jb2Rpbmc9InV0Zi04IiwgbmV3bGluZT0iXG4iKQogICAgICAgIHByaW50KGYiQ3JlYXRlZCB7cWFfcmVwb3J0X3BhdGh9IikKCiAgICBwcmludCgiXG5Eb25lLiIpCiAgICBwcmludCgiXG5UZXN0IGNvbW1hbmRzOiIpCiAgICBwcmludCgiICBweXRob24gc2NyaXB0cy9hZ2VudF9ydW5uZXIucHkgLS1saXN0LWFnZW50cyIpCiAgICBwcmludCgiICBweXRob24gc2NyaXB0cy9hZ2VudF9ydW5uZXIucHkgMDAxLWF0dGVudGlvbi1kZWJ0IHFhLWF1ZGl0b3IgLS10YXNrLW9ubHkiKQogICAgcHJpbnQoIlxuRXhwZWN0ZWQgb3V0cHV0OiIpCiAgICBwcmludCgiICBydW5zLzAwMS1hdHRlbnRpb24tZGVidC9xYS10YXNrLm1kIikKICAgIHByaW50KCJcbkNvbW1pdDoiKQogICAgcHJpbnQoIiAgZ2l0IHN0YXR1cyIpCiAgICBwcmludCgiICBnaXQgYWRkIC4iKQogICAgcHJpbnQoIiAgZ2l0IGNvbW1pdCAtbSBcIkV4dGVuZCBydW5uZXIgd2l0aCBRQSB0YXNrIHN1cHBvcnRcIiIpCiAgICByZXR1cm4gMAoKCmlmIF9fbmFtZV9fID09ICJfX21haW5fXyI6CiAgICByYWlzZSBTeXN0ZW1FeGl0KG1haW4oKSkK
+B64
 
-cat > .env.example <<'ENV'
-# Copy this file to .env and add your key.
-# Do not commit .env to GitHub.
-
-OPENAI_API_KEY=your_api_key_here
-
-# Default model used by the agent runner.
-OPENAI_MODEL=gpt-5.5
-ENV
-
-cat > .gitignore <<'GIT'
-# Python
-__pycache__/
-*.pyc
-.venv/
-venv/
-
-# Environment / secrets
-.env
-
-# Logs
-logs/
-*.log
-
-# OS/editor junk
-.DS_Store
-Thumbs.db
-.vscode/
-.idea/
-GIT
-
-cat > config/agent_map.yaml <<'YAML'
-agents:
-  strategist:
-    agent_file: agents/strategist.md
-    output_file: strategy-pack.md
-    required_inputs:
-      - intake.md
-
-  builder:
-    agent_file: agents/builder.md
-    output_file: draft-output.md
-    required_inputs:
-      - intake.md
-      - strategy-pack.md
-
-  qa-auditor:
-    agent_file: agents/qa-auditor.md
-    output_file: qa-report.md
-    required_inputs:
-      - intake.md
-      - strategy-pack.md
-      - draft-output.md
-
-  operator:
-    agent_file: agents/operator-chief-of-staff.md
-    output_file: approval-pack.md
-    required_inputs:
-      - intake.md
-      - strategy-pack.md
-      - draft-output.md
-      - qa-report.md
-YAML
-
-cat > scripts/agent_runner.py <<'PY'
-#!/usr/bin/env python3
-
-"""
-KevOS Agent Bench - Agent Runner v0.1
-
-Usage examples:
-
-    python scripts/agent_runner.py 001-attention-debt strategist
-    python scripts/agent_runner.py 001-attention-debt builder
-    python scripts/agent_runner.py 001-attention-debt qa-auditor
-    python scripts/agent_runner.py 001-attention-debt operator
-
-Dry run, no API call:
-
-    python scripts/agent_runner.py 001-attention-debt strategist --dry-run
-
-The runner:
-1. Reads the selected agent definition from /agents
-2. Reads required run inputs from /runs/<run-id>
-3. Sends the work packet to the model
-4. Writes the output back to /runs/<run-id>
-"""
-
-from __future__ import annotations
-
-import argparse
-import os
-import sys
+python - <<'PY'
 from pathlib import Path
-from datetime import datetime
+import base64
 
-import yaml
-from dotenv import load_dotenv
+b64_path = Path("update_agent_runner_v0_4_fixed.py.b64")
+out_path = Path("update_agent_runner_v0_4_fixed.py")
 
+data = base64.b64decode(b64_path.read_text(encoding="ascii"))
+out_path.write_bytes(data)
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
-CONFIG_PATH = REPO_ROOT / "config" / "agent_map.yaml"
-
-
-def read_text(path: Path) -> str:
-    if not path.exists():
-        raise FileNotFoundError(f"Missing file: {path}")
-    return path.read_text(encoding="utf-8")
-
-
-def write_text(path: Path, content: str) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(content, encoding="utf-8")
-
-
-def load_config() -> dict:
-    return yaml.safe_load(read_text(CONFIG_PATH))
-
-
-def build_input_packet(run_id: str, agent_name: str, config: dict) -> tuple[str, Path]:
-    agents = config.get("agents", {})
-
-    if agent_name not in agents:
-        available = ", ".join(sorted(agents.keys()))
-        raise ValueError(f"Unknown agent '{agent_name}'. Available agents: {available}")
-
-    agent_config = agents[agent_name]
-
-    agent_file = REPO_ROOT / agent_config["agent_file"]
-    run_dir = REPO_ROOT / "runs" / run_id
-    output_path = run_dir / agent_config["output_file"]
-
-    if not run_dir.exists():
-        raise FileNotFoundError(f"Run folder does not exist: {run_dir}")
-
-    agent_definition = read_text(agent_file)
-
-    input_sections = []
-    for input_file in agent_config.get("required_inputs", []):
-        input_path = run_dir / input_file
-        input_content = read_text(input_path)
-        input_sections.append(
-            f"\n\n---\n\n# Input file: {input_file}\n\n{input_content}"
-        )
-
-    packet = f"""
-You are running as part of the KevOS Agent Bench.
-
-Your agent definition is below.
-
---- AGENT DEFINITION START ---
-
-{agent_definition}
-
---- AGENT DEFINITION END ---
-
-You will now receive the run inputs.
-
-Your task:
-- Follow your agent definition.
-- Use only the supplied inputs unless you clearly flag that more research is needed.
-- Produce the standard output format defined in your agent file.
-- Be practical, grounded, and useful.
-- Do not include fake citations or invented source details.
-- If evidence is missing, say so clearly.
-- Write in Markdown.
-
---- RUN INPUTS START ---
-{''.join(input_sections)}
---- RUN INPUTS END ---
-""".strip()
-
-    return packet, output_path
-
-
-def call_openai(prompt: str, model: str) -> str:
-    try:
-        from openai import OpenAI
-    except ImportError as exc:
-        raise RuntimeError(
-            "OpenAI package is not installed. Run: pip install -r requirements.txt"
-        ) from exc
-
-    client = OpenAI()
-
-    response = client.responses.create(
-        model=model,
-        input=prompt,
-    )
-
-    return response.output_text
-
-
-def main() -> int:
-    parser = argparse.ArgumentParser(description="Run a KevOS agent against a work packet.")
-    parser.add_argument("run_id", help="Run folder ID, e.g. 001-attention-debt")
-    parser.add_argument("agent", help="Agent name, e.g. strategist, builder, qa-auditor, operator")
-    parser.add_argument("--dry-run", action="store_true", help="Build prompt but do not call API")
-    parser.add_argument("--overwrite", action="store_true", help="Overwrite output file if it already exists")
-    parser.add_argument("--model", default=None, help="Override model name")
-
-    args = parser.parse_args()
-
-    load_dotenv(REPO_ROOT / ".env")
-
-    config = load_config()
-    prompt, output_path = build_input_packet(args.run_id, args.agent, config)
-
-    if output_path.exists() and not args.overwrite and not args.dry_run:
-        print(f"Output already exists: {output_path}")
-        print("Use --overwrite if you want to replace it.")
-        return 1
-
-    timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
-    logs_dir = REPO_ROOT / "logs"
-    logs_dir.mkdir(exist_ok=True)
-
-    prompt_log = logs_dir / f"{timestamp}-{args.run_id}-{args.agent}-prompt.md"
-    write_text(prompt_log, prompt)
-
-    if args.dry_run:
-        print("Dry run complete. Prompt written to:")
-        print(prompt_log)
-        print("\nOutput would be written to:")
-        print(output_path)
-        return 0
-
-    model = args.model or os.environ.get("OPENAI_MODEL", "gpt-5.5")
-
-    if not os.environ.get("OPENAI_API_KEY"):
-        print("Missing OPENAI_API_KEY.")
-        print("Create a .env file from .env.example, or set the environment variable.")
-        return 1
-
-    print(f"Running agent '{args.agent}' on run '{args.run_id}' using model '{model}'...")
-    result = call_openai(prompt, model)
-
-    header = f"<!-- Generated by KevOS Agent Bench on {datetime.now().isoformat(timespec='seconds')} -->\n\n"
-    write_text(output_path, header + result)
-
-    print("Done. Output written to:")
-    print(output_path)
-    return 0
-
-
-if __name__ == "__main__":
-    try:
-        raise SystemExit(main())
-    except Exception as exc:
-        print(f"ERROR: {exc}", file=sys.stderr)
-        raise SystemExit(1)
+print(f"Wrote {out_path}")
 PY
 
-cat > scripts/create_run.py <<'PY'
-#!/usr/bin/env python3
+python update_agent_runner_v0_4_fixed.py
 
-"""
-Create a new KevOS Agent Bench run folder.
+echo ""
+echo "Cleaning temporary base64 file..."
+rm -f update_agent_runner_v0_4_fixed.py.b64
 
-Example:
-
-    python scripts/create_run.py 002-job-ad-analysis
-"""
-
-from __future__ import annotations
-
-import argparse
-from pathlib import Path
-
-
-REPO_ROOT = Path(__file__).resolve().parents[1]
-
-
-RUN_FILES = {
-    "intake.md": """# Intake
-
-## Work packet name
-
-## Source material
-
-## Initial reaction
-
-## Target audience
-
-## Desired output
-
-## Constraints
-
-## Definition of done
-
-""",
-    "research-pack.md": "# Research Pack\n\n",
-    "strategy-pack.md": "# Strategy Pack\n\n",
-    "draft-output.md": "# Draft Output\n\n",
-    "artefacts.md": "# Artefacts\n\n",
-    "qa-report.md": "# QA Report\n\n",
-    "approval-pack.md": "# Approval Pack\n\n",
-}
-
-
-def main() -> int:
-    parser = argparse.ArgumentParser(description="Create a new run folder.")
-    parser.add_argument("run_id", help="Run ID, e.g. 002-job-ad-analysis")
-    args = parser.parse_args()
-
-    run_dir = REPO_ROOT / "runs" / args.run_id
-    run_dir.mkdir(parents=True, exist_ok=True)
-
-    for filename, content in RUN_FILES.items():
-        path = run_dir / filename
-        if not path.exists():
-            path.write_text(content, encoding="utf-8")
-
-    print(f"Created run folder: {run_dir}")
-    return 0
-
-
-if __name__ == "__main__":
-    raise SystemExit(main())
-PY
-
-cat > RUNNER.md <<'MD'
-# KevOS Agent Runner
-
-This repo now has a basic programmatic agent runner.
-
-The first goal is simple:
-
-> Given a run folder and an agent name, read the relevant inputs and generate the next output file.
-
-## Setup
-
-From the repo root:
-
-```bash
-python -m venv .venv
-source .venv/Scripts/activate
-pip install -r requirements.txt
-cp .env.example .env
+echo ""
+echo "Now test:"
+echo "  python scripts/agent_runner.py --list-agents"
+echo "  python scripts/agent_runner.py 001-attention-debt qa-auditor --task-only"
+echo ""
+echo "Then commit:"
+echo "  git status"
+echo "  git add ."
+echo "  git commit -m \"Extend runner with QA task support\""

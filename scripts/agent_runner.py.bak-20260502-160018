@@ -1,5 +1,26 @@
 #!/usr/bin/env python3
 
+"""
+KevOS Agent Bench - Agent Runner v0.1
+
+Usage examples:
+
+    python scripts/agent_runner.py 001-attention-debt strategist
+    python scripts/agent_runner.py 001-attention-debt builder
+    python scripts/agent_runner.py 001-attention-debt qa-auditor
+    python scripts/agent_runner.py 001-attention-debt operator
+
+Dry run, no API call:
+
+    python scripts/agent_runner.py 001-attention-debt strategist --dry-run
+
+The runner:
+1. Reads the selected agent definition from /agents
+2. Reads required run inputs from /runs/<run-id>
+3. Sends the work packet to the model
+4. Writes the output back to /runs/<run-id>
+"""
+
 from __future__ import annotations
 
 import argparse
@@ -31,11 +52,7 @@ def load_config() -> dict:
     return yaml.safe_load(read_text(CONFIG_PATH))
 
 
-def repo_path(relative_path: str) -> Path:
-    return REPO_ROOT / relative_path
-
-
-def build_input_packet(run_id: str, agent_name: str, config: dict) -> tuple[str, Path, Path]:
+def build_input_packet(run_id: str, agent_name: str, config: dict) -> tuple[str, Path]:
     agents = config.get("agents", {})
 
     if agent_name not in agents:
@@ -44,28 +61,14 @@ def build_input_packet(run_id: str, agent_name: str, config: dict) -> tuple[str,
 
     agent_config = agents[agent_name]
 
-    agent_file = repo_path(agent_config["agent_file"])
-    prompt_file = repo_path(agent_config["prompt_file"]) if agent_config.get("prompt_file") else None
-
+    agent_file = REPO_ROOT / agent_config["agent_file"]
     run_dir = REPO_ROOT / "runs" / run_id
     output_path = run_dir / agent_config["output_file"]
-    task_path = run_dir / agent_config.get("task_file", f"{agent_name}-task.md")
 
     if not run_dir.exists():
         raise FileNotFoundError(f"Run folder does not exist: {run_dir}")
 
     agent_definition = read_text(agent_file)
-
-    prompt_section = ""
-    if prompt_file:
-        prompt_text = read_text(prompt_file)
-        prompt_section = f'''
---- AGENT TASK PROMPT START ---
-
-{prompt_text}
-
---- AGENT TASK PROMPT END ---
-'''
 
     input_sections = []
     for input_file in agent_config.get("required_inputs", []):
@@ -75,15 +78,7 @@ def build_input_packet(run_id: str, agent_name: str, config: dict) -> tuple[str,
             f"\n\n---\n\n# Input file: {input_file}\n\n{input_content}"
         )
 
-    packet = f'''
-# KevOS Agent Bench Task Packet
-
-## Run
-
-- Run ID: {run_id}
-- Agent: {agent_name}
-- Generated: {datetime.now().isoformat(timespec='seconds')}
-
+    packet = f"""
 You are running as part of the KevOS Agent Bench.
 
 Your agent definition is below.
@@ -93,15 +88,13 @@ Your agent definition is below.
 {agent_definition}
 
 --- AGENT DEFINITION END ---
-{prompt_section}
+
 You will now receive the run inputs.
 
-## Execution rules
-
+Your task:
 - Follow your agent definition.
-- Follow the agent task prompt if one is supplied.
 - Use only the supplied inputs unless you clearly flag that more research is needed.
-- Produce the standard output format defined in your agent file or task prompt.
+- Produce the standard output format defined in your agent file.
 - Be practical, grounded, and useful.
 - Do not include fake citations or invented source details.
 - If evidence is missing, say so clearly.
@@ -110,9 +103,9 @@ You will now receive the run inputs.
 --- RUN INPUTS START ---
 {''.join(input_sections)}
 --- RUN INPUTS END ---
-'''.strip()
+""".strip()
 
-    return packet, output_path, task_path
+    return packet, output_path
 
 
 def call_openai(prompt: str, model: str) -> str:
@@ -133,42 +126,25 @@ def call_openai(prompt: str, model: str) -> str:
     return response.output_text
 
 
-def print_available_agents(config: dict) -> None:
-    print("Available agents:")
-    for agent_name in sorted(config.get("agents", {}).keys()):
-        print(f"- {agent_name}")
-
-
 def main() -> int:
     parser = argparse.ArgumentParser(description="Run a KevOS agent against a work packet.")
-    parser.add_argument("run_id", nargs="?", help="Run folder ID, e.g. 001-attention-debt")
-    parser.add_argument("agent", nargs="?", help="Agent name, e.g. strategist, builder, qa-auditor, operator")
+    parser.add_argument("run_id", help="Run folder ID, e.g. 001-attention-debt")
+    parser.add_argument("agent", help="Agent name, e.g. strategist, builder, qa-auditor, operator")
     parser.add_argument("--dry-run", action="store_true", help="Build prompt but do not call API")
-    parser.add_argument("--task-only", action="store_true", help="Write task packet to the run folder and do not call API")
     parser.add_argument("--overwrite", action="store_true", help="Overwrite output file if it already exists")
     parser.add_argument("--model", default=None, help="Override model name")
-    parser.add_argument("--list-agents", action="store_true", help="List configured agents and exit")
 
     args = parser.parse_args()
 
     load_dotenv(REPO_ROOT / ".env")
 
     config = load_config()
+    prompt, output_path = build_input_packet(args.run_id, args.agent, config)
 
-    if args.list_agents:
-        print_available_agents(config)
-        return 0
-
-    if not args.run_id or not args.agent:
-        parser.print_help()
-        print("\nExamples:")
-        print("  python scripts/agent_runner.py 001-attention-debt qa-auditor --task-only")
-        print("  python scripts/agent_runner.py 001-attention-debt qa-auditor --dry-run")
-        print("  python scripts/agent_runner.py 001-attention-debt qa-auditor --overwrite")
-        print("  python scripts/agent_runner.py --list-agents")
+    if output_path.exists() and not args.overwrite and not args.dry_run:
+        print(f"Output already exists: {output_path}")
+        print("Use --overwrite if you want to replace it.")
         return 1
-
-    prompt, output_path, task_path = build_input_packet(args.run_id, args.agent, config)
 
     timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
     logs_dir = REPO_ROOT / "logs"
@@ -177,40 +153,18 @@ def main() -> int:
     prompt_log = logs_dir / f"{timestamp}-{args.run_id}-{args.agent}-prompt.md"
     write_text(prompt_log, prompt)
 
-    write_text(task_path, prompt)
-
-    if args.task_only:
-        print("Task packet created. No API call made.")
-        print("\nTask packet written to:")
-        print(task_path)
-        print("\nPrompt log written to:")
-        print(prompt_log)
-        print("\nExpected output path:")
-        print(output_path)
-        return 0
-
     if args.dry_run:
-        print("Dry run complete. No API call made.")
-        print("\nTask packet written to:")
-        print(task_path)
-        print("\nPrompt log written to:")
+        print("Dry run complete. Prompt written to:")
         print(prompt_log)
         print("\nOutput would be written to:")
         print(output_path)
         return 0
-
-    if output_path.exists() and not args.overwrite:
-        print(f"Output already exists: {output_path}")
-        print("Use --overwrite if you want to replace it.")
-        return 1
 
     model = args.model or os.environ.get("OPENAI_MODEL", "gpt-5.5")
 
     if not os.environ.get("OPENAI_API_KEY"):
         print("Missing OPENAI_API_KEY.")
         print("Create a .env file from .env.example, or set the environment variable.")
-        print("\nNo API call made, but the task packet was created here:")
-        print(task_path)
         return 1
 
     print(f"Running agent '{args.agent}' on run '{args.run_id}' using model '{model}'...")

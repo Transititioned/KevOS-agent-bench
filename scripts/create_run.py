@@ -1,5 +1,13 @@
 #!/usr/bin/env python3
 
+"""
+Create a new KevOS Agent Bench run folder.
+
+Example:
+
+    python scripts/create_run.py 002-job-ad-analysis
+"""
+
 from __future__ import annotations
 
 import argparse

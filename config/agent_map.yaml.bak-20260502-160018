@@ -1,17 +1,9 @@
 agents:
-  diversity_maintainer:
-    agent_file: agents/diversity_maintainer.md
-    output_file: diversity-map.md
-    required_inputs:
-      - intake.md
-      - research-pack.md
-
   strategist:
     agent_file: agents/strategist.md
     output_file: strategy-pack.md
     required_inputs:
       - intake.md
-      - diversity-map.md
 
   builder:
     agent_file: agents/builder.md

@@ -1,3 +1,36 @@
+#!/usr/bin/env bash
+set -e
+
+echo "Extending KevOS Agent Bench runner with QA task support..."
+
+# Safety check: must be run from repo root
+if [ ! -d ".git" ]; then
+  echo "ERROR: This does not look like the repo root. No .git folder found."
+  echo "Run this from the KevOS-agent-bench folder, not inside .git."
+  exit 1
+fi
+
+mkdir -p scripts
+mkdir -p config
+mkdir -p prompts
+mkdir -p agents
+mkdir -p runs/001-attention-debt
+
+# Backups
+timestamp=$(date +"%Y%m%d-%H%M%S")
+
+if [ -f "scripts/agent_runner.py" ]; then
+  cp "scripts/agent_runner.py" "scripts/agent_runner.py.bak-$timestamp"
+  echo "Backed up scripts/agent_runner.py to scripts/agent_runner.py.bak-$timestamp"
+fi
+
+if [ -f "config/agent_map.yaml" ]; then
+  cp "config/agent_map.yaml" "config/agent_map.yaml.bak-$timestamp"
+  echo "Backed up config/agent_map.yaml to config/agent_map.yaml.bak-$timestamp"
+fi
+
+# Install enhanced runner
+cat > scripts/agent_runner.py <<'PY'
 #!/usr/bin/env python3
 
 from __future__ import annotations
@@ -31,11 +64,19 @@ def load_config() -> dict:
     return yaml.safe_load(read_text(CONFIG_PATH))
 
 
-def repo_path(relative_path: str) -> Path:
+def resolve_repo_path(relative_path: str) -> Path:
     return REPO_ROOT / relative_path
 
 
 def build_input_packet(run_id: str, agent_name: str, config: dict) -> tuple[str, Path, Path]:
+    """
+    Build the full agent task packet.
+
+    Returns:
+        packet: assembled Markdown prompt/task
+        output_path: where the agent result should be written
+        task_path: where the copy/paste-ready task packet should be written
+    """
     agents = config.get("agents", {})
 
     if agent_name not in agents:
@@ -44,8 +85,8 @@ def build_input_packet(run_id: str, agent_name: str, config: dict) -> tuple[str,
 
     agent_config = agents[agent_name]
 
-    agent_file = repo_path(agent_config["agent_file"])
-    prompt_file = repo_path(agent_config["prompt_file"]) if agent_config.get("prompt_file") else None
+    agent_file = resolve_repo_path(agent_config["agent_file"])
+    prompt_file = resolve_repo_path(agent_config["prompt_file"]) if agent_config.get("prompt_file") else None
 
     run_dir = REPO_ROOT / "runs" / run_id
     output_path = run_dir / agent_config["output_file"]
@@ -59,13 +100,14 @@ def build_input_packet(run_id: str, agent_name: str, config: dict) -> tuple[str,
     prompt_section = ""
     if prompt_file:
         prompt_text = read_text(prompt_file)
-        prompt_section = f'''
+        prompt_section = f"""
+
 --- AGENT TASK PROMPT START ---
 
 {prompt_text}
 
 --- AGENT TASK PROMPT END ---
-'''
+"""
 
     input_sections = []
     for input_file in agent_config.get("required_inputs", []):
@@ -75,7 +117,7 @@ def build_input_packet(run_id: str, agent_name: str, config: dict) -> tuple[str,
             f"\n\n---\n\n# Input file: {input_file}\n\n{input_content}"
         )
 
-    packet = f'''
+    packet = f"""
 # KevOS Agent Bench Task Packet
 
 ## Run
@@ -110,7 +152,7 @@ You will now receive the run inputs.
 --- RUN INPUTS START ---
 {''.join(input_sections)}
 --- RUN INPUTS END ---
-'''.strip()
+""".strip()
 
     return packet, output_path, task_path
 
@@ -177,6 +219,7 @@ def main() -> int:
     prompt_log = logs_dir / f"{timestamp}-{args.run_id}-{args.agent}-prompt.md"
     write_text(prompt_log, prompt)
 
+    # Always write the run-local task packet.
     write_text(task_path, prompt)
 
     if args.task_only:
@@ -230,3 +273,172 @@ if __name__ == "__main__":
     except Exception as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
         raise SystemExit(1)
+PY
+
+# Make runner executable for Git Bash users
+chmod +x scripts/agent_runner.py
+
+# Ensure config exists and contains qa-auditor
+python - <<'PY'
+from pathlib import Path
+import sys
+
+try:
+    import yaml
+except ImportError:
+    print("ERROR: PyYAML is not installed. Run: pip install pyyaml")
+    sys.exit(1)
+
+config_path = Path("config/agent_map.yaml")
+
+if config_path.exists():
+    data = yaml.safe_load(config_path.read_text(encoding="utf-8")) or {}
+else:
+    data = {}
+
+agents = data.setdefault("agents", {})
+
+agents["qa-auditor"] = {
+    "agent_file": "agents/qa-auditor.md",
+    "prompt_file": "prompts/qa_prompt.md",
+    "required_inputs": [
+        "intake.md",
+        "strategy-pack.md",
+        "draft-output.md",
+    ],
+    "output_file": "qa-report.md",
+    "task_file": "qa-task.md",
+}
+
+config_path.parent.mkdir(parents=True, exist_ok=True)
+config_path.write_text(yaml.safe_dump(data, sort_keys=False), encoding="utf-8")
+print("Updated config/agent_map.yaml with qa-auditor.")
+PY
+
+# Ensure qa prompt exists. Do not overwrite if user already has it.
+if [ ! -f "prompts/qa_prompt.md" ]; then
+  cat > prompts/qa_prompt.md <<'EOF'
+# QA Prompt — Research-to-Article Package
+
+You are the QA / Auditor agent for the KevOS Agent Bench.
+
+Review the Builder output package for the selected run.
+
+## Review stance
+
+Be sceptical but useful.
+
+Do not rewrite the article by default.
+
+Focus on issues that materially affect:
+
+- clarity
+- credibility
+- usefulness
+- audience fit
+- publishability
+- reputational safety
+- voice fit
+
+## Checks
+
+Review the package against these dimensions:
+
+1. Argument clarity
+2. Audience value
+3. Evidence strength
+4. Practical usefulness
+5. Voice fit
+6. AI-slop risk
+7. Structure and readability
+8. Artefact usefulness
+9. Reputational safety
+10. Approval readiness
+
+## Output format
+
+Produce a QA report in Markdown with:
+
+- Recommendation
+- Executive summary
+- Quality scorecard
+- Key strengths
+- Material issues
+- Claim and evidence review
+- Voice and tone review
+- Structure review
+- Reputational risk review
+- Recommended edits
+- Handoff to Operator / Chief of Staff
+EOF
+  echo "Created prompts/qa_prompt.md"
+else
+  echo "prompts/qa_prompt.md already exists. Left unchanged."
+fi
+
+# Ensure qa-auditor agent exists. Do not overwrite if user already has it.
+if [ ! -f "agents/qa-auditor.md" ]; then
+  cat > agents/qa-auditor.md <<'EOF'
+# Agent: QA / Auditor
+
+## Purpose
+
+Protect quality, credibility, usefulness, and professional judgement.
+
+The QA / Auditor assesses the output, identifies risks, recommends improvements, and decides whether the work is ready for approval, revision, or rejection.
+
+## Output contract
+
+The QA / Auditor must produce:
+
+1. Overall recommendation
+2. Executive summary
+3. Quality scorecard
+4. Key strengths
+5. Material issues
+6. Suggested fixes
+7. Claim and evidence review
+8. Voice and tone review
+9. Publishability recommendation
+10. Final action list
+
+## Recommendation options
+
+Use one of:
+
+- Publish-ready
+- Minor revision
+- Major revision
+- Park / reject
+EOF
+  echo "Created agents/qa-auditor.md"
+else
+  echo "agents/qa-auditor.md already exists. Left unchanged."
+fi
+
+# Ensure run output placeholder exists. Do not overwrite real report.
+if [ ! -f "runs/001-attention-debt/qa-report.md" ]; then
+  cat > runs/001-attention-debt/qa-report.md <<'EOF'
+# QA Report — Use Case 001: Attention Debt
+
+Status: Pending QA run.
+EOF
+fi
+
+echo ""
+echo "Runner QA task support installed."
+echo ""
+echo "Try this:"
+echo "  python scripts/agent_runner.py --list-agents"
+echo "  python scripts/agent_runner.py 001-attention-debt qa-auditor --task-only"
+echo ""
+echo "This creates:"
+echo "  runs/001-attention-debt/qa-task.md"
+echo ""
+echo "If you have OPENAI_API_KEY configured, run:"
+echo "  python scripts/agent_runner.py 001-attention-debt qa-auditor --overwrite"
+echo ""
+echo "Then commit:"
+echo "  git status"
+echo "  git add ."
+echo "  git commit -m \"Extend runner with QA task support\""
