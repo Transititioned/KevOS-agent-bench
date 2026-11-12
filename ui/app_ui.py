@@ -39,7 +39,7 @@ def build_app() -> gr.Blocks:
 
         # Status notification banner
         status_banner = gr.HTML(
-            value='<div class="status-box status-idle">Ready. Enter a research topic and book section to begin a mission.</div>'
+            value='<div class="status-box status-idle">Ready. Enter a research topic to begin; book section material is optional.</div>'
         )
 
         with gr.Row(equal_height=False):
@@ -123,7 +123,7 @@ def build_app() -> gr.Blocks:
                 with gr.Tabs(elem_classes=["workbench-tabs"]) as tabs:
                     with gr.TabItem("Research Dossier", id="tab_research"):
                         research_output = gr.Markdown(
-                            value="*No research dossier available yet. Enter a topic and section on the left and click **Run Research Mission**, or load an existing run.*",
+                            value="*No research dossier available yet. Enter a topic on the left and click **Run Research Mission**, or load an existing run.*",
                             elem_classes=["reading-pane"],
                         )
 
@@ -190,9 +190,10 @@ def build_app() -> gr.Blocks:
         ):
             try:
                 clean_material = (material or "").strip()
-                if not clean_material:
+                clean_topic = (topic or "").strip()
+                if not clean_material and not clean_topic:
                     return (
-                        '<div class="status-box status-error">❌ <strong>Error:</strong> Book section material is required. Please paste your section or upload a file.</div>',
+                        '<div class="status-box status-error">❌ <strong>Error:</strong> Enter a research topic or provide book section material to start a mission.</div>',
                         gr.update(),
                         gr.update(),
                         gr.update(),

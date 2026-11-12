@@ -176,10 +176,11 @@ def run_mission_backend(
 
     try:
         clean_material = (material or "").strip()
-        if not clean_material:
+        clean_topic = (topic or "").strip()
+        if not clean_material and not clean_topic:
             return {
                 "success": False,
-                "error": "Book section material is required. Please paste your section or upload a .md/.txt file.",
+                "error": "Enter a research topic or provide book section material to start a mission.",
                 "run_id": None,
                 "mock": False,
             }
@@ -189,7 +190,7 @@ def run_mission_backend(
         if additional_directions and additional_directions.strip():
             queries = [q.strip() for q in additional_directions.splitlines() if q.strip()]
 
-        clean_topic = (topic or "").strip() or "AI book section"
+        clean_topic = clean_topic or "Research topic from supplied book section"
 
         if mock_mode:
             # Simulated offline test execution for UI evaluation
@@ -332,9 +333,9 @@ def _run_mock_mission(material: str, topic: str, queries: list[str] | None) -> d
 - **Filtering Asymmetry:** While individual communicators may adopt message subtraction, organizational reward structures still incentivize visible output and broadcast volume.
 - **Multilingual Disagreements:** International practitioners highlight that direct subtraction principles fail in high-context business cultures (e.g. Japan, France, Latin America), where formal framing is essential for governance legitimacy.
 
-## Unsupported Claims in Supplied Manuscript
+## {"Unsupported Claims in Supplied Manuscript" if material.strip() else "Topic-Level Implications for a Potential Chapter"}
 
-- The claim that *"all communication volume directly degrades project velocity"* is an overgeneralization; low-friction synchronization channels actually prevent blocking dependencies in distributed teams.
+{"- The claim that *\"all communication volume directly degrades project velocity\"* is an overgeneralization; low-friction synchronization channels actually prevent blocking dependencies in distributed teams." if material.strip() else "- Separate measured findings from hypotheses, and avoid treating communication volume as uniformly harmful without context."}
 
 ## Research Gaps
 
@@ -365,7 +366,8 @@ def _run_mock_mission(material: str, topic: str, queries: list[str] | None) -> d
 - Refine the core thesis to specify: *"Reduce unnecessary cognitive burden, not essential contextual clarity."*
 """
 
-    editorial_content = disclaimer + f"""# Editorial Recommendations: {topic}
+    if material.strip():
+        editorial_content = disclaimer + f"""# Editorial Recommendations: {topic}
 
 ## Prioritized Improvement Plan
 
@@ -389,6 +391,18 @@ def _run_mock_mission(material: str, topic: str, queries: list[str] | None) -> d
 - **Issue:** Western-centric, informal startup bias.
 - **Recommended Revision:** Add a short paragraph explicitly addressing high-context communication and compliance record-keeping.
 - **Supporting Evidence:** Refer to [Revue Gestion & Organisation](https://gestion-organisation.fr/etudes/surcharge-ia).
+"""
+    else:
+        editorial_content = disclaimer + f"""# Editorial Recommendations: {topic}
+
+## General Editorial Angles
+
+- Define the central question and distinguish established evidence from plausible hypotheses.
+- Present the strongest counterargument before offering a qualified synthesis.
+- Include a practical case study and identify where findings may not generalize.
+- Suggested chapter structure: context, evidence, competing explanations, practical implications, and open questions.
+
+These are topic-level suggestions; no manuscript passage was supplied for line-specific edits.
 """
 
     # Write files
