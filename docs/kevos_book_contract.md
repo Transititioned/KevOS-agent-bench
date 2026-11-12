@@ -1,6 +1,6 @@
-# AgentX Python Contract
+# KevOS Book Harness Python Contract
 
-This is the backend contract for the Gradio UI and other Python clients. Import from `scripts.agentx` (or `scripts.agentx` after adding the repository root to `sys.path`). It does not depend on Gradio.
+This is the backend contract for the Gradio UI and other Python clients. Import from `scripts.kevos_book_harness` (or add the repository root to `sys.path`). It does not depend on Gradio.
 
 ## Operations
 
@@ -16,13 +16,13 @@ Example:
 ### `run_capability(capability, context, *, run_id=None, model=None) -> dict`
 Runs one capability. `capability` is an ID from `list_capabilities()`. `context` is a mapping containing `material` (required for the first stage), optional `topic`, prior-stage `artifacts` and optional `research_queries`. `run_id` is an optional filesystem-safe identifier; generated otherwise. `model` overrides `OPENAI_MODEL`.
 
-Returns `{"run_id": str, "capability": str, "artifact": {"path": str, "content": str}, "metadata": dict}`. Outputs are Markdown files under `runs/<run_id>/agentx/`. Research uses OpenAI Responses API web search when configured, and its output records URLs and distinguishes verified claims from hypotheses.
+Returns `{"run_id": str, "capability": str, "artifact": {"path": str, "content": str}, "metadata": dict}`. Outputs are Markdown files under `runs/<run_id>/kevos-book/`. Editorial enrichment receives both the research dossier and adversarial review so citations and evidence remain available. Research uses OpenAI Responses API web search when configured, and its output records URLs and distinguishes verified claims from hypotheses.
 
 ### `get_artifact(run_id, artifact_name) -> dict`
 Reads an existing artifact for that run. `artifact_name` is the capability ID or its Markdown filename. Returns `{"run_id": str, "artifact": {"path": str, "content": str}}`.
 
 ### `save_feedback(run_id, feedback, *, artifact_name=None) -> dict`
-Appends human feedback to `runs/<run_id>/agentx/feedback.md`; feedback may be a string or JSON-serializable mapping. Returns `{"run_id": str, "path": str, "saved": True}`.
+Appends human feedback to `runs/<run_id>/kevos-book/feedback.md`; feedback may be a string or JSON-serializable mapping. Returns `{"run_id": str, "path": str, "saved": True}`.
 
 ### `run_book_mission(material, *, topic=None, run_id=None, model=None, research_queries=None) -> dict`
 Runs Research → Adversarial Review → Editorial Enrichment sequentially using the same hooks. `material` is the existing book section as text. Returns `{"run_id": str, "artifacts": {<capability>: {"path": str, "content": str}}, "status": "complete"}`. Original material is read only and is never overwritten.
@@ -38,7 +38,7 @@ Install `requirements.txt`; copy `.env.example` to `.env`, set `OPENAI_API_KEY`,
 ## Example
 
 ```python
-from scripts.agentx import run_book_mission, get_artifact, save_feedback
+from scripts.kevos_book_harness import run_book_mission, get_artifact, save_feedback
 
 result = run_book_mission(
     "Paste a section here", topic="AI governance in delivery teams"

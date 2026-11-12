@@ -11,6 +11,12 @@ venv/
 logs/
 *.log
 
+# Private book workflow outputs and feedback. Existing tracked files are unaffected.
+/runs/**/kevos-book/
+/runs/**/feedback.md
+/runs/**/manuscript*
+/runs/**/book-material*
+
 # OS/editor junk
 .DS_Store
 Thumbs.db

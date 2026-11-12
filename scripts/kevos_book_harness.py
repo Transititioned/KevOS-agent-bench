@@ -23,7 +23,7 @@ except ImportError:
                 os.environ.setdefault(key.strip(), value.strip().strip("\"'"))
 
 ROOT = Path(__file__).resolve().parents[1]
-CONFIG = ROOT / "config" / "agentx_capabilities.yaml"
+CONFIG = ROOT / "config" / "kevos_book_capabilities.yaml"
 DEFAULT_MODEL = "gpt-5.5"
 MAX_MATERIAL_CHARS = 24000
 
@@ -40,7 +40,7 @@ def list_capabilities() -> list[dict[str, str]]:
 def _run_dir(run_id: str) -> Path:
     if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_-]{0,79}", run_id):
         raise ValueError("run_id must be 1-80 letters, numbers, underscores or hyphens")
-    return ROOT / "runs" / run_id / "agentx"
+    return ROOT / "runs" / run_id / "kevos-book"
 
 
 def _client(model: str | None, *, web_search: bool = False):
@@ -85,8 +85,11 @@ def _context_text(context: Mapping[str, Any], capability: str) -> str:
     material = str(context.get("material", "")).strip()
     if not material:
         raise ValueError("context.material is required")
-    return ("## Original book material\n" + material[:MAX_MATERIAL_CHARS] +
-            "\n\n## Relevant prior artifact\n" + str(prior)[:18000])
+    parts = ["## Original book material\n" + material[:MAX_MATERIAL_CHARS]]
+    if capability == "editorial_enrichment" and artifacts.get("research"):
+        parts.append("## Original research dossier\n" + str(artifacts["research"])[:18000])
+    parts.append("## Relevant prior artifact\n" + str(prior)[:18000])
+    return "\n\n".join(parts)
 
 
 def run_capability(capability: str, context: Mapping[str, Any], *, run_id: str | None = None,
