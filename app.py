@@ -24,5 +24,4 @@ if __name__ == "__main__":
         share=False,
         theme=WORKBENCH_THEME,
         css=WORKBENCH_CSS,
-        allowed_paths=[str(ROOT.resolve()), str((ROOT / "runs").resolve())],
     )
