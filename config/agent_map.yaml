@@ -4,7 +4,6 @@ agents:
     output_file: diversity-map.md
     required_inputs:
       - intake.md
-      - research-pack.md
 
   strategist:
     agent_file: agents/strategist.md

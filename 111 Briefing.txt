@@ -1,0 +1,259 @@
+# KevOS Agent Bench — Pickup Briefing Note
+
+This project is an agent-bench architecture exercise first, and an article-generation exercise second.
+
+## Where we got to
+
+We are building `KevOS-agent-bench`, a local-first Python/GitHub-managed personal AI delivery bench.
+
+This is not just an article generator. The long-term goal is a reusable agent bench for:
+
+- research synthesis
+- planning
+- article/content production
+- QA
+- approval packs
+- professional work support
+- “agent team that has my back” workflows
+
+The first working use case is a research-to-article pipeline using an article idea about AI, workplace communication, and “attention debt.”
+
+## Current repo / local setup
+
+Repo:
+
+```text
+C:\Projects\KevOS-agent-bench
+
+## Architecture context — KevOS Agent Bench
+
+KevOS Agent Bench is being built as a reusable, local-first agent workflow system.
+
+The architecture pattern is:
+
+```text
+run folder
+  + canonical intake
+  + agent instructions
+  + agent map
+  + sequential outputs
+  + QA / approval layer
+
+It is deliberately file-based so that:
+
+the user can inspect every intermediate artefact
+agents do not depend on hidden chat context
+outputs are versionable in Git
+each agent has a clear input/output contract
+failed or weak stages can be rerun without rerunning everything
+the same pattern can later support other workflows beyond article generation
+Core architectural components
+config/agent_map.yaml
+
+Defines which agents exist, which instruction file they use, what output they create, and which run files they require as inputs.
+
+agents/
+
+Contains reusable agent role definitions such as:
+
+diversity_maintainer.md
+strategist.md
+builder.md
+qa-auditor.md
+operator-chief-of-staff.md
+
+Each agent should have a bounded job. Avoid having one agent do everything.
+
+runs/<run-name>/
+
+Contains the working files for a specific run.
+
+For the current test run:
+
+runs/001-attention-debt/
+
+Current files include:
+
+intake.md
+diversity-map.md
+strategy-pack.md
+draft-output.md
+qa-report.md
+approval-pack.md
+
+The run folder is the local source of truth for the agent runner. ChatGPT conversation context does not automatically exist inside the local runtime.
+
+scripts/agent_runner.py
+
+Runs one agent at a time using:
+
+python scripts/agent_runner.py <run-name> <agent-name> --overwrite
+
+Example:
+
+python scripts/agent_runner.py 001-attention-debt diversity_maintainer --overwrite
+
+The runner reads config/agent_map.yaml, gathers the required input files from the run folder, loads the agent instruction file, calls the model, and writes the configured output file.
+
+templates/
+
+Should hold reusable templates, including the next likely addition:
+
+templates/intake-template.md
+playbooks/
+
+Should hold workflow-specific guidance.
+
+For example:
+
+playbooks/001-research-to-article/
+
+This is where the research-to-article process, intake process, QA checklist, and approval pack template should live.
+
+Current architectural principle
+
+The important rule discovered this weekend:
+
+No hidden context.
+No duplicate source content.
+Each run needs a clear canonical intake file.
+
+For now:
+
+intake.md = canonical source file for the run
+
+That means intake.md contains both:
+
+The brief / purpose / target outputs
+The actual source material the agents need to evaluate
+
+This avoids creating stale duplicated copies of source material across research-pack.md, intake.md, and other files.
+
+Current agent chain
+intake.md
+    ↓
+diversity_maintainer
+    ↓
+diversity-map.md
+    ↓
+strategist
+    ↓
+strategy-pack.md
+    ↓
+builder
+    ↓
+draft-output.md
+    ↓
+qa-auditor
+    ↓
+qa-report.md
+    ↓
+operator
+    ↓
+approval-pack.md
+Agent responsibilities
+diversity_maintainer
+
+Preserves useful source diversity before strategy is created.
+
+It identifies:
+
+supporting views
+contrarian views
+edge cases
+practical tactics
+distinctive phrases
+duplicated/noisy material
+risky or weak material
+what the Strategist must not flatten
+strategist
+
+Turns the diversity map and intake into a recommended angle, argument, risks, builder instructions, and QA focus areas.
+
+It should not draft the final article.
+
+builder
+
+Creates the requested artefacts from the strategy pack.
+
+For this use case:
+
+LinkedIn post
+Blog article draft
+Message subtraction checklist
+
+It should not perform QA or approval work.
+
+qa-auditor
+
+Reviews the Builder output against the strategy, evidence discipline, tone, audience fit, risks, and checklist quality.
+
+operator
+
+Creates the final approval pack for human review.
+
+It should summarise:
+
+what was produced
+decision needed
+risks
+QA status
+final recommendation
+Why diversity_maintainer was added
+
+The earlier pipeline went:
+
+intake.md
+→ strategist
+→ builder
+
+That worked, but it flattened source diversity too quickly.
+
+The article idea came from a messy thread with useful practitioner voices, objections, duplicates, and distinctive language. The Strategist and Builder preserved the main thesis but underweighted the source texture.
+
+The new step fixes that:
+
+intake.md
+→ diversity_maintainer
+→ strategist
+
+The diversity step makes sure the Strategist sees:
+
+the HHH/content pillars voice
+the bundling objection
+the “less total cognitive load” correction
+the consultative filtering idea
+the invisible work of killing drafts
+the risky phrases like “jargon monoxide”
+duplicated/noisy material
+Current architecture maturity
+
+The weekend proved this pattern:
+
+structured intake
+→ diversity map
+→ strategy pack
+
+This is now a valid reusable architecture slice.
+
+The next architecture improvements should be modest:
+
+Add templates/intake-template.md
+Add playbooks/001-research-to-article/intake-process.md
+Possibly add intake_auditor later, but not yet
+Keep the system simple until the article pipeline has completed end-to-end
+Do not over-engineer yet
+
+Do not add a database, UI, vector store, scheduler, or complex orchestration yet.
+
+The current architectural priority is:
+
+clean file contracts
+clear source of truth
+small bounded agents
+visible intermediate outputs
+repeatable local runner
+Git versioning
+
+The system should stay boring and inspectable until the pattern is stable.
+

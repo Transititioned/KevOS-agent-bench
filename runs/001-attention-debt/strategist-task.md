@@ -4,7 +4,7 @@
 
 - Run ID: 001-attention-debt
 - Agent: strategist
-- Generated: 2026-05-02T16:38:55
+- Generated: 2026-05-02T17:07:01
 
 You are running as part of the KevOS Agent Bench.
 
@@ -212,129 +212,494 @@ You will now receive the run inputs.
 
 # Input file: intake.md
 
-\# Intake — Attention Debt and AI Communication
+# Intake — Attention Debt and AI Communication
 
+## 1. Run purpose
 
+Test whether the `diversity_maintainer` agent can preserve useful source diversity before the Strategist turns the material into a clean article angle.
 
-\## Seed idea
+The intended output is an article/content pack on AI-enabled workplace communication, attention debt, and message subtraction.
 
+This is a test intake. It deliberately includes messy source material, multiple viewpoints, practical tactics, objections, colourful language, and some duplicated/noisy material so the diversity step has something real to evaluate.
 
+## 2. Target outputs
 
-AI has made workplace communication easier to create, but not easier to receive.
+The downstream article pack should eventually include:
 
+- LinkedIn post
+- Blog article draft
+- Message subtraction checklist
+- QA report
+- Approval pack
 
+For this test, the immediate outputs are:
 
-The bottleneck has shifted from content production to attention management.
+- `diversity-map.md`
+- `strategy-pack.md`
 
+## 3. Target audience
 
+Primary audience:
 
-\## Source material
+- Project Managers
+- Business Analysts
+- Change Managers
+- Delivery leads
+- Internal communications professionals
+- AI adoption / governance leads
 
+Secondary audience:
 
+- Senior stakeholders receiving high volumes of updates
+- Product owners and transformation leads
+- Operations managers responsible for coordination and reporting
 
-\- Reddit/thread seed on AI and internal communication
+## 4. Source material included
 
-\- Notes on “attention debt”
+This intake includes source material from a Reddit/thread-style discussion titled:
 
-\- Existing ChatGPT discussion about article pipeline and agent bench
+**AI has flipped the comms role — we're now in the subtraction business**
 
+The source material includes:
 
+- Seed argument / original post
+- Supporting practitioner comments
+- Contrarian / challenge comments
+- Practical communication tactics
+- Distinctive phrases worth preserving
+- Duplicated content that should be recognised as duplication
+- User interpretation and preferred angle
+- Known risks and sensitivities
 
-\## Initial reaction
+## 5. Canonical source material
 
+### 5.1 Seed thesis / original post
 
+AI has flipped the communications role.
 
-This is a strong professional angle because it connects AI adoption, change management, internal communications, PM delivery, and executive signal-to-noise.
+The original poster says something has been nagging at them since AI content tools went mainstream.
 
+For most of their career, the bottleneck in organisational communication was **creation**.
 
+It was hard to produce content. Writing took time. Video was expensive and editing was laborious. Even a decent email required actual effort.
 
-\## Possible audience
+But now that bottleneck is gone.
 
+What has not changed is the receiving end.
 
+Human attention is still finite. Cognitive load is still real. People still have the same 1,500 minutes in a day and the same limited working memory.
 
-\- Project Managers
+The equation has flipped.
 
-\- Business Analysts
+It is now trivially easy to **give** communication and brutally hard to **receive** it.
 
-\- Change Managers
+The poster argues that this changes what internal communications actually is.
 
-\- AI governance leads
+They say internal comms is no longer in the content creation business. It is in the noise reduction business.
 
-\- Internal communications teams
+The value added is not what gets produced. The value is what gets prevented, simplified, or killed to preserve the signal.
 
-\- Delivery leaders
+The poster proposes a simple framework:
 
+```text
+(Volume × Friction) ÷ (Resonance × Personalisation)
+```
 
+Top half:
 
-\## Possible angle
+- The cognitive cost of the message
+- How much noise it creates
+- How hard it is to process
 
+Bottom half:
 
+- The perceived value
+- Why the recipient should care
+- Whether the message is even for them
 
-The next wave of AI productivity will not come from generating more workplace content. It will come from reducing the cognitive load that workplace content creates.
+Interpretation:
 
+- High number = gets ignored
+- Low number = cuts through
 
+The useful point is not the maths. The useful point is that it forces communicators to think about the **environment** the message lands in, not just the message itself.
 
-\## Why this may matter
+Most comms advice tells people to reduce volume. Fewer frameworks tell people to design for high volume as a permanent condition.
 
+That means assuming the message is always landing in a crowded inbox and engineering accordingly.
 
+The poster asks whether this resonates with others, or whether they are overthinking it.
 
-Organisations are adopting AI tools that make it easier to produce emails, updates, summaries, reports, meeting notes, and presentations.
+They ask whether the AI explosion has changed how people think about their role.
 
+### 5.2 Supporting voice — content audits, pillars, and HHH
 
+A commenter says they are “nerdily loving the maths element” and that the idea resonates with their experience of content, both internal and external.
 
-That creates a new risk: more content, more noise, more review burden, and more decision fatigue.
+They are in the final part of a website content audit and are going through a large amount of material to archive and repurpose.
 
+They say their team has found it useful to bring everything back to key content pillars and use a HHH framework:
 
+- Hero
+- Hub
+- Help
 
-\## Risks / sensitivities
+They say this helps balance frequency and impact.
 
+They also say the idea that things are becoming noisier as a permanent state is interesting and mildly terrifying.
 
+As a consumer, they feel overload all the time, regardless of platform.
 
-\- Avoid sounding anti-AI.
+### 5.3 OP response — frameworks pull different levers
 
-\- Avoid sounding like communication teams are the problem.
+The original poster responds that HHH is a good example.
 
-\- Avoid generic “AI is changing work” fluff.
+They say HHH primarily pulls the **Resonance** lever:
 
-\- Keep it practical and delivery-focused.
+- Hero = emotional impact
+- Help = clear utility
 
+It also indirectly affects **Volume** by giving people permission not to publish everything.
 
+The poster says most content frameworks optimise one or two levers well, but leave others untouched.
 
-\## Target output
+They identify **Friction reduction** as almost a separate discipline, including:
 
+- sentence length
+- scannability
+- cognitive load
 
+They also say **Personalisation** usually lives in marketing or segmentation rather than comms strategy.
 
-Create an approval-ready article pack containing:
+The useful idea is to map which lever each tactic pulls, because that makes it easier to spot gaps.
 
+### 5.4 Supporting voice — reduce comms sent year on year
 
+Another practitioner agrees and says their main goal last year and this year has been to reduce the number of communications sent year on year.
 
-\- LinkedIn post
+This supports the subtraction idea.
 
-\- Blog article draft
+However, it should be handled carefully. Reducing message count is not always the same as reducing cognitive load.
 
-\- Message subtraction checklist
+### 5.5 Contrarian / challenge voice — combining messages can backfire
 
-\- QA report
+Another commenter asks how to balance readability with decreased frequency.
 
-\- Approval pack
+They say that when their team reduces the number of messages by combining similar things, they receive feedback that staff miss things because the relevant information was “at the bottom of the other email.”
 
+This is a strong objection.
+
+It shows that subtraction is not simply bundling, batching, or sending fewer messages.
+
+Bad subtraction can increase friction by making messages longer, mixed-purpose, and harder to scan.
+
+This challenge should be preserved because it prevents a simplistic “fewer emails is better” argument.
+
+### 5.6 OP response — no silver bullet, reduce total cognitive load
+
+The original poster replies that there is no silver bullet.
+
+They say the problem may indicate a more systemic issue with organisational attention.
+
+They also acknowledge that there will always be people who do not read things.
+
+The poster then lists practical tactics that may help.
+
+#### Visual hierarchy / chunking / F-pattern scanning
+
+Structure messages for scanning, not just reading.
+
+This avoids forcing everyone to read linearly.
+
+Lever: **Friction**
+
+#### Hick's Law / Rule of One
+
+One ask, one decision.
+
+If you want one thing done, ask for one thing.
+
+Lever: **Friction**
+
+#### Pattern interrupt
+
+Pattern interrupt does not have to be a linguistic trick.
+
+It can be anything appropriate that interrupts the pattern of boring corporate updates and makes people actually read.
+
+Lever: **Resonance**
+
+#### Segmentation
+
+If only 40% of staff need a specific piece of information, sending it to everyone trains the other 60% to skim past everything.
+
+Lever: **Personalisation**
+
+#### Lead with “why you specifically”
+
+The first line of any section should answer:
+
+> Why should I care?
+
+before:
+
+> What do I need to do?
+
+Lever: **Resonance + Personalisation**
+
+#### Inverted pyramid / progressive disclosure
+
+Lead with the action. Follow with context.
+
+Make background optional reading for those who need it, not a barrier for those who do not.
+
+Lever: **Friction**
+
+#### Signal intent / effort
+
+Examples include:
+
+- “5 min read”
+- “No action required”
+- subject tags such as `[FYI]`, `[ACTION]`, `[DECISION]`
+
+Lever: **Friction**
+
+The poster reframes the goal:
+
+> The goal isn't fewer emails. It's less total cognitive load.
+
+### 5.7 Duplicate / noisy source material
+
+The OP response about practical tactics appears twice in the source material.
+
+The “attention debt” definition and rough tool comment also appears twice.
+
+The Diversity Maintainer should recognise this as duplication and avoid treating repeated text as independent support.
+
+### 5.8 Attention debt definition
+
+The original poster says they have started calling the problem **attention debt**.
+
+They define it as:
+
+> The unpaid cognitive load that builds up when it's easy to send and expensive to receive.
+
+They say that until signal-to-noise can be measured properly, subtraction beats addition.
+
+They also mention building a rough tool that scores messages against the four levers and suggests edits.
+
+This tool idea may be relevant to the article, but it should not be overclaimed unless we are actually building or demonstrating such a tool.
+
+### 5.9 Supporting voice — infobesity and trusted channels
+
+Another commenter says this is exactly where their head has been going, particularly after reading about **infobesity**.
+
+They say the job is about preserving the quality and usefulness of trusted channels in an overcrowded space.
+
+They repeat or highlight the attention debt definition.
+
+They also use the phrase:
+
+> Jargon monoxide
+
+This phrase is colourful and memorable.
+
+It may be useful as a private note or possible rhetorical inspiration, but it may be too informal or too loaded for a professional article unless handled carefully.
+
+### 5.10 Supporting voice — legacy perception of comms role
+
+Another commenter says that for them, content creation has been made easier.
+
+They believe the biggest hurdle to adopting a **subtraction** mindset is not the technology, but the legacy perception of the communications role.
+
+They argue that comms needs to move from **Content Producer** to **Noise Reducer**.
+
+They describe three pivots.
+
+#### Pivot 1: From artefacts to outcomes
+
+They say they have received briefs where clients ask for a catchy poster or persuasive email that creates “buzz and excitement.”
+
+When they ask more questions about why the material is needed and what it is meant to achieve, things become confusing.
+
+Many companies still view communications as a designer/content writer shop.
+
+The commenter says comms should stop asking:
+
+> What should the newsletter say?
+
+and start asking:
+
+> What does success look like for this specific business goal?
+
+#### Pivot 2: Systems-thinking as a requirement
+
+Success now requires looking at the environment the message lands in, not just the message itself.
+
+If the system is already flooded, the most valuable communications move might be to cancel the message entirely.
+
+They suggest asking:
+
+- Who are the stakeholders most likely, least likely, and most impacted?
+- How would this initiative affect their already busy lives?
+- How can they be empowered to handle queries and challenges?
+- How can feedback mechanisms show whether the right things are happening?
+
+They also say that coaching clients sometimes becomes important.
+
+#### Pivot 3: Consultative filtering
+
+Comms must work closer with clients to define success before the first draft is written.
+
+The value is no longer in what comms produces. AI can help speed that process.
+
+The value is in what comms prevents to preserve the signal.
+
+If comms does not pivot into a systems-thinking role, it becomes part of the friction in the numerator.
+
+This is a strong practitioner view and should heavily influence the strategy.
+
+### 5.11 Strong practitioner voice — invisible work of killing drafts
+
+Another commenter says they have seen internal comms teams do more damage by adding one more perfectly written update into an already saturated channel than by saying nothing.
+
+They say people are not ignoring messages because they are badly written. They are ignoring them because there are so many, people are busy, and they cannot tell which ones matter.
+
+They say the subtraction point feels right.
+
+The best communications people they know spend a lot of time:
+
+- killing drafts
+- merging updates
+- saying “this doesn’t need to go out”
+- choosing not to polish copy that should not exist
+
+They say this work is invisible to everyone else, but:
+
+> it’s the work.
+
+They also like the idea of designing for permanent overload rather than pretending there is a clean inbox waiting.
+
+They say that is the part most advice skips.
+
+This is one of the strongest source voices.
+
+It has practical texture, lived experience, and a clear articulation of the invisible value of subtraction.
+
+## 6. User interpretation / preferred angle
+
+My interpretation is that this source material is not just about better writing.
+
+It is about a role shift in AI-enabled work:
+
+- from content production to attention management
+- from drafting to filtering
+- from artefacts to outcomes
+- from broadcasting to routing
+- from polish to usefulness
+- from communication volume to communication value
+
+The article should not be anti-AI.
+
+The point is that AI changes the economics of communication. When creation gets cheap, filtering becomes more valuable.
+
+The practical opportunity is to use AI and better communication discipline to reduce attention debt, not create more polished noise.
+
+The strongest professional phrase is:
+
+> AI has made workplace communication easier to create, but not easier to receive.
+
+The strongest operational phrase is:
+
+> The goal isn't fewer emails. It's less total cognitive load.
+
+The strongest role-shift phrase is:
+
+> We're in the noise reduction business.
+
+The strongest practitioner phrase is:
+
+> Killing drafts is invisible work, but it’s the work.
+
+## 7. Known risks / sensitivities
+
+The downstream article should avoid:
+
+- sounding anti-AI
+- sounding like internal communications teams are the problem
+- suggesting less communication is always better
+- becoming generic “AI is changing work” fluff
+- overclaiming that attention debt is an established formal metric
+- pretending the ratio is mathematically validated
+- copying too much source language verbatim
+- using colourful phrases such as “jargon monoxide” in a way that sounds unprofessional
+- ignoring the contrarian point that combining messages can make readability worse
+- treating repeated source text as separate evidence
+
+## 8. Must-preserve ideas / phrases
+
+The Diversity Maintainer should explicitly evaluate whether these should carry forward:
+
+- “easier to create, but not easier to receive”
+- “content production to attention management”
+- “noise reduction business”
+- “what we prevent, simplify, or kill”
+- `(Volume × Friction) ÷ (Resonance × Personalisation)`
+- “design for high volume as a permanent condition”
+- “attention debt”
+- “the unpaid cognitive load that builds up when it's easy to send and expensive to receive”
+- “subtraction beats addition”
+- “the goal isn't fewer emails; it's less total cognitive load”
+- “from artefacts to outcomes”
+- “systems-thinking as a requirement”
+- “consultative filtering”
+- “part of the friction in your numerator”
+- “killing drafts”
+- “this doesn’t need to go out”
+- “invisible work, but it’s the work”
+- “designing for permanent overload”
+- “jargon monoxide”
+
+## 9. Open questions for the Diversity Maintainer
+
+The Diversity Maintainer should answer:
+
+1. Which source voices are genuinely useful?
+2. Which are supporting views?
+3. Which are contrarian or challenge views?
+4. Which practical tactics should influence the strategy?
+5. Which phrases are strong enough to preserve?
+6. Which phrases are too risky or informal?
+7. Which material is duplicated or noisy?
+8. Which tensions should the Strategist carry forward?
+9. Does the source support a full article, or only a working hypothesis?
+10. What should the Strategist avoid flattening?
 
 
 ---
 
 # Input file: diversity-map.md
 
-<!-- Generated by KevOS Agent Bench on 2026-05-02T16:38:16 -->
+<!-- Generated by KevOS Agent Bench on 2026-05-02T17:06:54 -->
 
 # Diversity Map
 
 ## Source overview
 
-The supplied material is an intake note for an article/productivity argument about “attention debt” in AI-enabled workplace communication.
+The source material is a messy but coherent thread-style discussion about how AI changes workplace communication. The central claim is that when AI makes content easier to produce, the scarce resource shifts from production capacity to recipient attention.
 
-The source material mentions a Reddit/thread seed, notes on “attention debt,” and an existing ChatGPT discussion, but those materials are not actually included in the run inputs. The `research-pack.md` is a placeholder and contains no source excerpts, thread comments, practitioner quotes, examples, or disagreements.
+The material includes:
 
-Because of that, this diversity map can only evaluate the views present in the intake. It cannot reliably preserve Reddit/forum diversity, specific objections, or lived practitioner language from the missing source material.
+- A strong seed thesis from the original poster.
+- Several supportive practitioner comments.
+- One particularly important challenge about “fewer messages” making things harder to read.
+- Practical tactics for reducing cognitive load.
+- Useful language around “attention debt,” “noise reduction,” and “killing drafts.”
+- Some duplicated material that should not be treated as separate evidence.
+- Known sensitivities around not sounding anti-AI, anti-comms, or simplistic about message reduction.
+
+Overall, the source material supports a full article angle, but the article should be framed as a practitioner-informed argument or working model, not as a formally proven theory. The strongest material is grounded in lived experience rather than external research evidence.
 
 ## Main thesis
 
@@ -342,445 +707,833 @@ The main thesis is:
 
 > AI has made workplace communication easier to create, but not easier to receive.
 
-The intake develops this into a broader claim:
+Because AI lowers the cost of producing emails, updates, decks, summaries, videos, and other workplace content, the bottleneck has moved. The problem is no longer primarily creation. The problem is attention, relevance, filtering, and cognitive load.
 
-- The bottleneck in workplace communication is shifting from content production to attention management.
-- AI tools can increase the volume of emails, updates, reports, summaries, meeting notes, and presentations.
-- The next wave of AI productivity may come less from generating more content and more from reducing the cognitive load created by workplace content.
-- Organisations risk creating more noise, review burden, and decision fatigue if they treat AI mainly as a content-generation accelerator.
+This implies a role shift for communicators and adjacent roles such as project managers, change managers, delivery leads, business analysts, governance leads, and internal comms teams.
 
-This is a strong central thesis for audiences involved in delivery, change, governance, and internal communication.
+The role shift can be summarised as:
+
+- From content production to attention management.
+- From drafting to filtering.
+- From artefacts to outcomes.
+- From broadcasting to routing.
+- From polish to usefulness.
+- From communication volume to communication value.
+- From creating more material to deciding what should be prevented, simplified, killed, routed, or made easier to process.
+
+The strongest operational expression of the thesis is:
+
+> The goal isn't fewer emails. It's less total cognitive load.
+
+This distinction is important. The article should not become a simplistic argument for “send less.” The better argument is “reduce the cognitive cost of the system.”
 
 ## Supporting views
 
-The supplied intake supports the thesis through several practical observations.
+### 1. Content audits, content pillars, and HHH framework
 
-### 1. AI lowers the cost of producing communication
+A supportive commenter connects the thesis to content audit work. They describe reviewing a large amount of material for archiving and repurposing, and using key content pillars plus the HHH framework:
 
-The intake assumes that organisations are adopting AI tools that make it easier to create:
+- Hero
+- Hub
+- Help
 
-- emails
-- status updates
-- summaries
-- reports
-- meeting notes
-- presentations
+They say this helps balance frequency and impact.
 
-This supports the idea that communication volume may rise when content creation becomes cheaper and faster.
+This is useful because it shows the subtraction mindset is not only theoretical. It appears in practical work such as auditing, archiving, repurposing, and deciding what content deserves attention.
 
-### 2. The real constraint is recipient attention
+The OP’s response adds a useful analytical layer: different frameworks pull different levers.
 
-The phrase “not easier to receive” is important. It reframes the problem away from writer productivity and toward reader burden.
+In this case:
 
-This is useful because many AI adoption conversations focus on production-side efficiency: faster drafting, faster summarising, faster document creation. The intake challenges that by asking whether the recipient’s cognitive load has improved.
+- HHH supports **Resonance**.
+- It may indirectly reduce **Volume** by giving teams permission not to publish everything.
+- It does not necessarily solve **Friction** or **Personalisation** on its own.
 
-### 3. AI productivity may depend on subtraction, not addition
+This supports the article’s potential structure: not all communication tactics solve the same problem. Some reduce volume, some reduce effort, some improve relevance, and some increase perceived value.
 
-The possible angle says:
+### 2. Reducing comms sent year on year
 
-> The next wave of AI productivity will not come from generating more workplace content. It will come from reducing the cognitive load that workplace content creates.
+Another practitioner says their goal has been to reduce the number of communications sent year on year.
 
-This is a clear strategic framing. It implies that useful AI communication systems should help organisations remove, compress, route, prioritise, or clarify messages rather than simply produce more of them.
+This supports the subtraction idea, but only partially.
 
-### 4. The topic connects multiple professional domains
+It is useful evidence that some practitioners are already trying to manage volume. However, it should be handled carefully because reducing the number of messages is not automatically the same as reducing cognitive load.
 
-The intake identifies the angle as relevant to:
+This view should influence the article, but it should not become the whole argument.
 
-- AI adoption
-- change management
-- internal communications
-- project delivery
-- executive signal-to-noise
-- AI governance
+### 3. Infobesity and trusted channels
 
-This cross-functional relevance is useful. The article should not be framed only as a writing productivity issue. It should be positioned as a delivery and decision-quality issue.
+A commenter links the discussion to “infobesity” and says the job is about preserving the quality and usefulness of trusted channels in an overcrowded space.
+
+This is a useful supporting view because it reframes the problem beyond individual messages. The issue is also about channel trust. If recipients learn that channels are overloaded, irrelevant, or full of low-value updates, they stop treating those channels as reliable.
+
+The phrase “trusted channels” is strategically useful and professional. It could help the article avoid sounding like it is only about inbox hygiene.
+
+The commenter also uses the phrase:
+
+> Jargon monoxide
+
+This is memorable but risky. See “Distinctive phrases worth preserving” and “Viewpoints to handle carefully.”
+
+### 4. Legacy perception of the comms role
+
+One of the strongest supportive views argues that the main obstacle is not technology, but the legacy perception of communications as a designer/content writer shop.
+
+This commenter says comms needs to move from:
+
+> Content Producer
+
+to:
+
+> Noise Reducer
+
+They describe three pivots:
+
+#### From artefacts to outcomes
+
+This is a highly useful practitioner view. It challenges clients who ask for a poster, email, or “buzz and excitement” before clarifying the business goal.
+
+Useful question to preserve:
+
+> What does success look like for this specific business goal?
+
+This should strongly influence the strategy because it broadens the article beyond writing tips. It makes the argument about business outcomes and role design.
+
+#### Systems-thinking as a requirement
+
+This view says communicators must consider the environment the message lands in, not just the quality of the message.
+
+Useful questions include:
+
+- Who are the stakeholders most likely, least likely, and most impacted?
+- How would this initiative affect their already busy lives?
+- How can they be empowered to handle queries and challenges?
+- How can feedback mechanisms show whether the right things are happening?
+
+This supports the “attention environment” angle and should be preserved.
+
+#### Consultative filtering
+
+This is another strong phrase and idea. It positions communications as an advisory and filtering function before drafting begins.
+
+The commenter’s warning is also strong:
+
+> If comms does not pivot into a systems-thinking role, it becomes part of the friction in the numerator.
+
+This is useful, but the wording may need softening in a professional article. The idea is strong: comms can either reduce friction or become friction.
+
+### 5. Invisible work of killing drafts
+
+This is one of the strongest source voices.
+
+The commenter says internal comms teams can do more damage by adding one more perfectly written update into an already saturated channel than by saying nothing.
+
+They argue people are not ignoring messages only because the messages are badly written. They ignore them because:
+
+- there are too many,
+- people are busy,
+- they cannot tell which ones matter.
+
+They describe the best communications people as spending time:
+
+- killing drafts,
+- merging updates,
+- saying “this doesn’t need to go out,”
+- choosing not to polish copy that should not exist.
+
+The phrase:
+
+> Killing drafts is invisible work, but it’s the work.
+
+is highly valuable. It is lived-in, specific, and captures the professional value of subtraction.
+
+This should heavily influence the strategy.
 
 ## Contrarian or challenge views
 
-Because the source material does not include actual Reddit comments, stakeholder objections, or practitioner responses, these are mostly inferred from the intake’s own risk notes. They should be handled as likely challenge views, not as sourced audience quotes.
+### Combining messages can backfire
 
-### 1. Risk of sounding anti-AI
+The strongest contrarian view is the comment asking how to balance readability with decreased frequency.
 
-The intake explicitly warns:
+The commenter says that when their team reduces the number of messages by combining similar things, they receive feedback that staff miss information because the relevant detail was:
 
-> Avoid sounding anti-AI.
+> at the bottom of the other email.
 
-This is a real strategic constraint. The final argument should not imply that AI-generated communication is inherently bad. The stronger position is that AI needs better communication discipline, not less adoption.
+This is a strong challenge and should be preserved clearly.
 
-Recommended handling:
+It reveals that “subtraction” can be done badly. If reducing volume means creating longer, mixed-purpose, harder-to-scan messages, then the team may reduce message count while increasing cognitive load.
 
-- Frame AI as an amplifier.
-- Say the issue is unmanaged output, not the technology itself.
-- Emphasise that AI can also help reduce attention debt if used deliberately.
+This challenge prevents the article from flattening into:
 
-### 2. Risk of blaming communication teams
+> Fewer emails are always better.
 
-The intake warns:
+The better position is:
 
-> Avoid sounding like communication teams are the problem.
+> Fewer messages are only better if they reduce total cognitive load and make relevance easier to detect.
 
-This matters because internal communications teams are a target audience. The article should avoid implying that professional communicators are causing the noise. In many organisations, communication overload is a system problem involving leadership, governance, project delivery, tooling, and incentives.
+This contrarian view should influence both the article and any checklist. The checklist should distinguish between:
 
-Recommended handling:
+- reducing volume,
+- combining messages,
+- segmenting messages,
+- simplifying messages,
+- making action clear,
+- improving scanability,
+- removing unnecessary sends.
 
-- Treat communication volume as an organisational design issue.
-- Position comms teams as part of the solution.
-- Avoid language that shames people for sending updates.
+The challenge also supports the OP’s reframing:
 
-### 3. Possible objection: more communication can be useful
-
-A likely challenge, though not directly sourced, is that more AI-generated communication may improve transparency, documentation, accessibility, and inclusion.
-
-For example, more meeting summaries or project updates may help people who missed meetings, work asynchronously, or need audit trails.
-
-Recommended handling:
-
-- Do not argue that “less communication” is always better.
-- Argue for “lower attention cost per useful decision.”
-- Distinguish useful communication from duplicated, unfocused, or unactionable communication.
-
-### 4. Possible objection: summarisation can reduce cognitive load
-
-The intake focuses on AI increasing content volume, but AI can also summarise, prioritise, and translate complexity.
-
-Recommended handling:
-
-- Acknowledge that AI is not only a generator of noise.
-- The core question should be how AI is governed and used.
-- The best use case may be message subtraction, synthesis, routing, and prioritisation.
-
-### 5. Possible objection: attention debt may be hard to measure
-
-The concept is promising, but the supplied material does not define how attention debt is identified or measured.
-
-Recommended handling:
-
-- Use the term as a practical metaphor unless evidence is added.
-- Avoid overclaiming that attention debt has a formal measurement model unless external research is supplied.
-- Offer simple operational signs: repeated clarification, unread updates, duplicate meetings, decision delays, bloated status reports, review queues.
+> The goal isn't fewer emails. It's less total cognitive load.
 
 ## Edge cases and trade-offs
 
-### 1. Compliance-heavy environments
+### 1. Fewer communications can still create more work
 
-Some organisations need more documentation, not less. In regulated environments, records, approvals, meeting notes, and decision logs may be necessary.
+Reducing message count can backfire if messages become:
 
-Trade-off:
+- longer,
+- mixed-purpose,
+- poorly structured,
+- harder to scan,
+- relevant only in parts,
+- unclear about who needs to act.
 
-- Reducing communication volume must not remove auditability or accountability.
-- The goal should be clearer, more structured, easier-to-review communication.
+This is the most important trade-off in the source material.
 
-### 2. Distributed and asynchronous teams
+### 2. Merging updates is not always subtraction
 
-Remote or globally distributed teams often rely on written communication to maintain alignment.
+Merging updates may reduce volume but increase friction. It can hide important information inside a larger message.
 
-Trade-off:
+The Strategist should avoid equating “batching” with “better communication.”
 
-- Message subtraction should not become information withholding.
-- Reducing noise should be balanced with preserving context for people outside meetings or time zones.
+### 3. Some people will not read things regardless
 
-### 3. Executive updates versus team-level detail
+The OP acknowledges that there will always be people who do not read communications. This is useful realism.
 
-Executives need signal, but delivery teams may need detail.
+The article should not imply that better communication design can solve all attention problems. Some non-reading is inevitable.
 
-Trade-off:
+### 4. Message quality still matters, but it is not enough
 
-- A single AI-generated update may not suit every audience.
-- Better practice may involve layered communication: headline, decision needed, risks, details, appendix.
+The source material does not say writing quality is irrelevant. Rather, it says polished copy can still be harmful if it should not have been sent.
 
-### 4. AI-generated summaries may hide nuance
+The trade-off:
 
-If AI is used to compress communication, important uncertainty, dissent, or edge cases can be lost.
+- Better writing reduces friction.
+- Better filtering reduces unnecessary demand.
+- Both matter, but filtering becomes more valuable when AI makes writing cheap.
 
-Trade-off:
+### 5. Personalisation can help, but it can also be operationally hard
 
-- Summary is not always clarity.
-- Summaries need quality checks, especially for decisions, risk, change impacts, and stakeholder disagreement.
+Segmentation and personalisation are presented as important levers. However, the source material does not provide much detail on implementation constraints, data quality, channel tooling, governance, or employee privacy.
 
-### 5. Faster drafting may create faster escalation
+This should be flagged as an area where more research or internal context may be needed before making strong recommendations.
 
-If everyone can quickly produce persuasive updates, leaders may receive more polished but less filtered asks.
+### 6. The framework is useful, but not mathematically validated
 
-Trade-off:
+The ratio:
 
-- Polished communication can still be low-value.
-- Organisations may need stronger norms around what deserves escalation.
+```text
+(Volume × Friction) ÷ (Resonance × Personalisation)
+```
 
-### 6. Communication overload may come from incentives, not tools
+is useful as a thinking tool, not as proven maths.
 
-The intake implies AI can worsen volume, but the root causes may include:
+The Strategist should preserve it as a heuristic, not present it as a validated model.
 
-- risk aversion
-- “cover yourself” documentation
-- unclear decision rights
-- meeting-heavy cultures
-- lack of prioritisation
-- leadership requests for constant updates
+### 7. “Attention debt” is a strong concept, but not established evidence here
 
-This is an inferred point. It should be used carefully unless supported by further source material.
+The phrase and definition are useful:
+
+> The unpaid cognitive load that builds up when it's easy to send and expensive to receive.
+
+But the source does not establish “attention debt” as a formal metric or widely accepted term. It should be presented as a useful working phrase or coined concept, not as an established field term.
+
+### 8. AI is the economic trigger, not the villain
+
+The article should avoid sounding anti-AI. The material supports a more nuanced view:
+
+- AI reduces the cost of creation.
+- That creates a risk of more volume.
+- The opportunity is to use AI and communication discipline to improve filtering, routing, summarising, and clarity.
 
 ## Practical tactics and examples
 
-The supplied intake points toward a practical, delivery-focused article pack. The following tactics are consistent with the source, but some are inferred from the “message subtraction checklist” target output rather than directly evidenced by source excerpts.
+The source includes a strong set of practical tactics. These should influence the strategy and later checklist.
 
-### 1. Use AI to subtract before generating
+### 1. Content audits
 
-Potential principle:
+Useful for identifying what to:
 
-- Before asking AI to draft a message, ask whether the message is needed.
-- Before sending a summary, ask what decision, action, or alignment it supports.
+- archive,
+- repurpose,
+- merge,
+- simplify,
+- stop producing.
 
-### 2. Add a “recipient burden” check
+This supports “subtraction” as an operational practice.
 
-For each communication, ask:
+### 2. Content pillars
 
-- Who needs this?
-- What do they need to do with it?
-- What can be removed?
-- What decision does it support?
-- What happens if we do not send it?
+Useful for deciding whether a message fits a strategic priority.
 
-### 3. Separate signal from archive
+A content pillar approach can give teams permission not to publish everything.
 
-A useful distinction for the Strategist:
+### 3. HHH framework
 
-- Signal: what someone needs to know or decide now.
-- Archive: useful background that should be stored but not pushed into everyone’s attention.
+Hero / Hub / Help can help balance frequency and impact.
 
-### 4. Use layered communication
+The OP’s useful interpretation:
 
-Possible structure:
+- Hero improves emotional resonance.
+- Help improves utility.
+- HHH may reduce volume indirectly.
 
-- One-line purpose
-- Decision or action required
-- Key risks or blockers
-- Supporting detail only if needed
-- Link to full notes/report/archive
+### 4. Lever mapping
 
-This would help reduce attention load while preserving access to detail.
+The four levers are:
 
-### 5. Apply a message subtraction checklist
+```text
+(Volume × Friction) ÷ (Resonance × Personalisation)
+```
 
-The target output includes a “Message subtraction checklist,” so this should be central to the final article pack.
+The strongest use of the model is not the maths. It is asking which lever a tactic pulls.
 
-Possible checklist areas:
+Examples:
 
-- Remove duplicated context.
-- Remove content that belongs in an archive.
-- Remove audiences who do not need to act.
-- Remove generic AI polish that adds length but not meaning.
-- Convert FYI messages into dashboards, logs, or searchable records where appropriate.
-- Convert long updates into decision-focused briefs.
+- Reducing sends affects **Volume**.
+- Shorter sentences and scanability affect **Friction**.
+- Leading with “why this matters” affects **Resonance**.
+- Segmentation affects **Personalisation**.
 
-### 6. Reframe AI governance around attention
+This is a useful diagnostic approach.
 
-The intake names AI governance leads as an audience. A useful tactic is to include communication load in AI governance conversations.
+### 5. Visual hierarchy, chunking, and F-pattern scanning
 
-Possible governance questions:
+Messages should be structured for scanning, not just linear reading.
 
-- Are AI tools increasing the number of messages people must review?
-- Are summaries being checked for accuracy?
-- Are teams using AI to prioritise and route information, or just generate more?
-- Are communication standards changing alongside AI adoption?
+This reduces friction and helps people find relevant content quickly.
+
+### 6. Hick’s Law / Rule of One
+
+The source phrase is:
+
+> One ask, one decision.
+
+This is highly useful. It can become a checklist item.
+
+If the communication asks for one thing, make the one thing obvious. Avoid multiple competing actions in one message.
+
+### 7. Pattern interrupt
+
+The OP says pattern interrupt does not need to be a gimmicky language trick. It can be anything appropriate that interrupts boring corporate update patterns and makes people actually read.
+
+This is useful, but should be handled carefully. “Pattern interrupt” can become marketing jargon if overused.
+
+### 8. Segmentation
+
+The source gives a clear example:
+
+If only 40% of staff need a specific piece of information, sending it to everyone trains the other 60% to skim past everything.
+
+This is one of the most practical points in the material. It connects over-broadcasting to long-term channel distrust.
+
+### 9. Lead with “why you specifically”
+
+The first line of any section should answer:
+
+> Why should I care?
+
+before:
+
+> What do I need to do?
+
+This is a strong tactic because it combines resonance and personalisation.
+
+### 10. Inverted pyramid / progressive disclosure
+
+Lead with the action. Follow with context.
+
+Make background optional reading for those who need it, not a barrier for those who do not.
+
+This is highly suitable for the checklist.
+
+### 11. Signal intent and effort
+
+Examples:
+
+- “5 min read”
+- “No action required”
+- `[FYI]`
+- `[ACTION]`
+- `[DECISION]`
+
+These reduce friction by helping recipients triage.
+
+The Strategist should preserve this as a practical tactic, but may want to add that tags only work if used consistently and honestly. That consistency point is an inference from the tactic, not directly stated in the source.
+
+### 12. Consultative filtering before drafting
+
+Before producing the artefact, clarify:
+
+- What outcome is needed?
+- Who needs to know?
+- Who needs to act?
+- What can be avoided?
+- What happens if we do not send this?
+- Is communication the right intervention?
+
+This is strongly supported by the practitioner comments.
+
+### 13. Killing drafts
+
+The material strongly supports treating “not sending” as valuable work.
+
+Examples to preserve:
+
+- killing drafts,
+- merging updates,
+- saying “this doesn’t need to go out,”
+- choosing not to polish copy that should not exist.
+
+Important caveat: merging updates can be useful, but the contrarian view shows it can also backfire.
 
 ## Distinctive phrases worth preserving
 
-The supplied intake contains several strong phrases worth carrying forward.
+### Strong enough to carry forward
 
-### High-value phrases
+#### “AI has made workplace communication easier to create, but not easier to receive.”
 
-- “AI has made workplace communication easier to create, but not easier to receive.”
-- “The bottleneck has shifted from content production to attention management.”
-- “Attention debt.”
-- “More content, more noise, more review burden, and more decision fatigue.”
-- “Executive signal-to-noise.”
-- “Reducing the cognitive load that workplace content creates.”
-- “Message subtraction.”
+Very strong. This is likely the clearest article hook. It is professional, balanced, and not anti-AI.
 
-### Useful framing language
+#### “Content production to attention management”
 
-- “The next wave of AI productivity…”
-- “Not anti-AI.”
-- “Practical and delivery-focused.”
+Strong. Useful for framing the role shift.
 
-### Language to handle carefully
+#### “Noise reduction business”
 
-- “Attention debt” is memorable, but it needs definition.
-- “Debt” implies accumulation and future cost. That is useful, but the article should explain what “interest” looks like: missed decisions, rework, slower reviews, lower trust, duplicated effort.
+Strong. Memorable and aligned with the source. Should be used carefully so it does not sound dismissive of necessary communication.
+
+#### “What we prevent, simplify, or kill”
+
+Strong. Captures the value of subtraction. “Kill” is slightly forceful but acceptable in a practitioner context.
+
+#### `(Volume × Friction) ÷ (Resonance × Personalisation)`
+
+Useful as a heuristic. Should be explicitly framed as a thinking tool, not validated maths.
+
+#### “Design for high volume as a permanent condition”
+
+Strong. This is one of the most strategically useful ideas because it moves beyond generic “send less” advice.
+
+#### “Attention debt”
+
+Strong concept. Should be framed as a working term or useful label, not an established formal metric.
+
+#### “The unpaid cognitive load that builds up when it's easy to send and expensive to receive.”
+
+Very strong definition. Worth preserving, with caveat that it is a coined/practitioner definition.
+
+#### “Subtraction beats addition”
+
+Memorable, but should be qualified. Subtraction beats addition when the system is overloaded and when subtraction reduces cognitive load.
+
+#### “The goal isn't fewer emails; it's less total cognitive load.”
+
+Very strong. This should be a central corrective in the article.
+
+#### “From artefacts to outcomes”
+
+Strong and professional. Should carry forward.
+
+#### “Systems-thinking as a requirement”
+
+Strong. Useful for the article’s role-shift argument.
+
+#### “Consultative filtering”
+
+Strong. Distinctive and professional. Worth preserving.
+
+#### “Killing drafts”
+
+Strong practitioner language. Useful and vivid.
+
+#### “This doesn’t need to go out”
+
+Very useful. Practical, concrete, and likely relatable.
+
+#### “Invisible work, but it’s the work”
+
+Very strong. It captures the undervalued nature of filtering.
+
+#### “Designing for permanent overload”
+
+Strong. Similar to “design for high volume as a permanent condition.” One of these may be enough in final output.
+
+### Useful but should be handled carefully
+
+#### “Part of the friction in your numerator”
+
+Clever and source-specific, but may be too inside-baseball unless the ratio has already been explained. Could be paraphrased as:
+
+> If comms does not reduce friction, it becomes part of the friction.
+
+#### “Jargon monoxide”
+
+Memorable and colourful, but risky for a professional article. It may sound flippant or too loaded. Better used as private inspiration unless the article has a more informal tone.
+
+#### “Subtraction beats addition”
+
+Good line, but potentially overbroad. Needs context.
+
+#### “Noise reduction business”
+
+Strong, but should not imply that communication itself is noise. The nuance is that comms should protect signal from noise.
+
+### Probably avoid as headline language
+
+#### “Jargon monoxide”
+
+Too informal and potentially derisive for the target audience unless used sparingly and knowingly.
+
+#### Any phrasing that implies “comms teams are the problem”
+
+The source is more nuanced. It says overloaded systems are the problem, and comms can either help reduce load or accidentally add to it.
 
 ## Weak, irrelevant, or wrong material
 
-### 1. Missing research material
+### 1. Duplicated OP practical tactics
 
-The main weakness is that the research pack does not contain the promised source material.
+The OP response listing practical tactics appears twice in the source material.
 
-Missing inputs include:
+This should not be treated as multiple independent confirmations. It is still useful, but it is one source view repeated.
 
-- Reddit/thread comments
-- practitioner objections
-- examples of AI-generated communication overload
-- notes defining “attention debt”
-- existing ChatGPT discussion
-- any evidence, anecdotes, or quotes
+### 2. Duplicated attention debt/tool material
 
-Without these, the diversity map cannot evaluate source disagreement in a robust way.
+The “attention debt” definition and the rough tool comment appear twice.
 
-### 2. Claims that would need support before publication
+Again, this should not be treated as independent support.
 
-The following ideas are plausible but would need evidence, examples, or careful wording before being stated strongly:
+### 3. The rough tool idea should not be overclaimed
 
-- AI adoption is causing a measurable increase in workplace communication volume.
-- AI-generated content is increasing decision fatigue.
-- Organisations are creating “attention debt” at scale.
-- The next wave of productivity will come primarily from reducing cognitive load.
+The OP mentions building a rough tool that scores messages against the four levers and suggests edits.
 
-These can still be used as article arguments, but they should be framed as a professional observation or risk unless stronger evidence is added.
+This is potentially relevant, especially for a future checklist or productised framework. However, there is not enough evidence to claim the tool exists in a mature, validated, or demonstrable form.
 
-### 3. Risk of generic AI commentary
+Safe treatment:
 
-The intake explicitly warns against generic “AI is changing work” fluff. This is a valid concern.
+- Mention as an idea or possible application.
+- Do not present as proven.
+- Do not imply a working product unless one is actually available.
 
-Material to avoid:
+### 4. The ratio is not evidence
 
-- broad claims about AI transformation without delivery examples
-- vague statements about the future of work
-- generic productivity booster language
-- unspecific calls for better communication
+The formula is a useful heuristic, but not a validated measure.
 
-### 4. Over-simple “less is better” argument
+The article should avoid implying that communication effectiveness can literally be calculated using that ratio.
 
-A weak version of the argument would be:
+### 5. “Infobesity” may need external context
 
-> AI creates too much content, so organisations should communicate less.
+The term appears in a supporting comment, but the source does not provide detail. If the final article wants to discuss “infobesity” as a research-backed concept, external research would be needed.
 
-That would flatten the issue. The stronger version is:
+### 6. “People have the same 1,500 minutes in a day”
 
-> AI should reduce the attention cost of coordination, not just increase the speed of content creation.
+This phrase appears in the seed argument and is rhetorically useful, but the exact number may invite unnecessary scrutiny. It is simply 25 hours, so it may be a mistake or rough phrasing unless there is context not provided.
+
+Safer paraphrase:
+
+> People still have finite working time and finite attention.
+
+### 7. Any universal claim that staff ignore messages only because of volume
+
+The source says volume is a major issue, but also includes friction, resonance, and personalisation. The article should avoid reducing the entire problem to volume alone.
 
 ## Viewpoints that should influence the strategy
 
-### 1. The receiver-side framing should lead
+### 1. AI changes the economics of communication
 
-The most important strategic view is that communication productivity should be assessed from the receiver’s side, not only the sender’s side.
+This should be central. The point is not “AI is bad.” The point is:
 
-The Strategist should preserve the central contrast:
+> When creation gets cheap, filtering becomes more valuable.
 
-- easier to create
-- not easier to receive
+### 2. The receiving environment matters
 
-### 2. Position this as an AI adoption maturity issue
+The article should focus not only on message quality, but on the environment the message lands in:
 
-The article should not be anti-AI. It should argue that mature AI use requires attention management.
+- crowded inboxes,
+- saturated channels,
+- low trust,
+- competing priorities,
+- limited attention,
+- unclear relevance.
 
-Useful framing:
+### 3. The role shift is bigger than writing
 
-- Immature use: generate more content faster.
-- Mature use: reduce cognitive load, clarify decisions, route information, and remove unnecessary messages.
+The source strongly supports an article about role change, not just writing tips.
 
-### 3. Keep the delivery lens
+The role shift includes:
 
-The intake’s audience includes PMs, BAs, Change Managers, and delivery leaders. The strategy should connect attention debt to practical delivery outcomes:
+- attention management,
+- consultative filtering,
+- systems thinking,
+- routing,
+- outcome clarification,
+- message subtraction.
 
-- slower decisions
-- unclear ownership
-- review bottlenecks
-- stakeholder fatigue
-- duplicated updates
-- lower trust in communication channels
-- change saturation
+### 4. Subtraction means reducing cognitive load, not simply reducing sends
 
-### 4. Make “message subtraction” the practical hook
+This is the key nuance from the contrarian comment.
 
-The target output includes a checklist, and this is the most concrete element in the intake.
+The Strategist should preserve this tension and make it explicit.
 
-The Strategist should build around a practical method, not just a conceptual critique.
+### 5. The invisible work should be made visible
 
-### 5. Treat communication teams as allies
+The practitioner voice about killing drafts is powerful. The article should legitimise this work as valuable professional judgement.
 
-The strategy should avoid blame and instead invite internal comms teams into a broader organisational solution.
+### 6. Practical tactics should be included
 
-Potential positioning:
+The source material is strong enough to support a practical checklist.
 
-- Communication teams have long managed clarity and audience burden.
-- AI makes that discipline more important, not less.
-- The problem is not communication professionals; it is unmanaged communication production across the organisation.
+Most useful tactics:
+
+- clarify the outcome before drafting,
+- ask whether the message needs to go out,
+- segment the audience,
+- lead with relevance,
+- use one ask / one decision,
+- structure for scanning,
+- use progressive disclosure,
+- signal intent and effort,
+- avoid burying relevant information in bundled updates,
+- measure success by reduced cognitive load, not only fewer messages.
+
+### 7. Trusted channels are an asset to protect
+
+The “trusted channels” view should influence the strategy. Communication overload does not only affect one message. It trains people how to treat the channel.
 
 ## Viewpoints to handle carefully
 
-### 1. “AI creates noise”
+### 1. “Reduce the number of communications sent”
 
-Handle carefully because it can sound anti-AI.
+Useful but incomplete.
 
-Better version:
+Handle as one lever, not the whole solution.
 
-> AI can create noise when organisations use it only to increase output rather than improve attention management.
+### 2. “Merging updates”
 
-### 2. “Communication teams are responsible”
+Merging can be useful, but the source includes a strong warning that it can bury information.
 
-Avoid. The intake explicitly warns against this.
+The Strategist should avoid recommending batching or bundling without guardrails.
 
-Better version:
+### 3. “Subtraction beats addition”
 
-> Attention debt is created by organisational habits, incentives, tools, and unclear decision pathways.
+Good rhetorical line, but only true when subtraction improves clarity, relevance, or cognitive load.
 
-### 3. “More communication is bad”
+### 4. “Noise reduction business”
 
-Too blunt and likely wrong.
+Strong phrase, but should be framed positively. The target audience includes internal comms professionals, so the article should not imply their work is merely cleaning up other people’s mess.
 
-Better version:
+Better framing:
 
-> More communication is only useful when it lowers uncertainty, improves decisions, or helps people act.
+> The strategic value of comms increasingly lies in preserving signal.
 
-### 4. “Summaries solve the problem”
+### 5. “Attention debt”
 
-Too simple. AI summaries can help, but they can also create more review burden or hide important nuance.
+Use as a useful working concept, not as a formal metric unless external evidence is added.
 
-Better version:
+### 6. The formula
 
-> Summaries help when they are accurate, audience-specific, decision-oriented, and used to reduce—not multiply—the number of things people must process.
+Useful for explanation, but risky if presented too literally.
 
-### 5. “Attention debt” as if it is an established metric
+Frame it as:
 
-The supplied material does not show that “attention debt” is a formal concept or measured framework.
+> a practical lens
 
-Better version:
+or:
 
-> Use “attention debt” as a practical metaphor unless further evidence is supplied.
+> a simple way to think about the trade-off.
+
+### 7. “Jargon monoxide”
+
+Memorable but potentially too informal or insulting. Use only if the final tone allows it, and probably not as a main phrase.
+
+### 8. Tooling claims
+
+The rough scoring tool should not become a claim about available capability unless the tool is actually part of the output.
+
+### 9. Blaming recipients
+
+The article should avoid suggesting people are lazy or inattentive. The source’s better explanation is systemic overload.
+
+### 10. Blaming comms teams
+
+The article should avoid suggesting internal comms teams caused the problem. The better frame is that AI and workplace complexity have changed the economics of communication, making filtering more important.
 
 ## Recommendations for Strategist
 
-1. **Lead with the strongest sentence from the intake:**  
-   “AI has made workplace communication easier to create, but not easier to receive.”
+### 1. Preserve the central tension
 
-2. **Frame the article as pro-AI but anti-noise.**  
-   The argument should be that AI adoption needs communication discipline, not that AI communication tools are bad.
+Do not flatten the article into “AI creates too much content” or “send fewer emails.”
 
-3. **Define “attention debt” early.**  
-   Suggested definition direction: the accumulated cost created when people must process more workplace content than they can meaningfully act on.
+The strongest article tension is:
 
-4. **Anchor the article in delivery consequences.**  
-   Connect attention debt to review bottlenecks, decision fatigue, stakeholder overload, change saturation, and executive signal-to-noise.
+> AI makes communication easier to produce, while human attention remains expensive to spend.
 
-5. **Use “message subtraction” as the practical centrepiece.**  
-   The checklist should give readers something immediately usable.
+### 2. Use the role-shift angle as the main article frame
 
-6. **Avoid blaming internal comms teams.**  
-   Present the issue as a system-level problem across leadership, delivery, governance, tooling, and workplace norms.
+The source supports a full article, not just a checklist, if the article focuses on the professional role shift:
 
-7. **Acknowledge the trade-off.**  
-   Some communication is necessary for transparency, auditability, inclusion, and asynchronous work. The goal is not less communication in all cases; it is lower cognitive load and higher usefulness.
+- from content production to attention management,
+- from artefacts to outcomes,
+- from drafting to filtering,
+- from broadcasting to routing,
+- from polish to usefulness.
 
-8. **Be careful with evidence claims.**  
-   The supplied inputs do not include statistics, studies, or actual Reddit comments. Any claims about measurable AI-driven overload need external support or should be phrased as observed risk/professional judgement.
+### 3. Make “less total cognitive load” the operational principle
 
-9. **If possible, request or recover the missing source material before final drafting.**  
-   The Reddit/thread seed and existing discussion are essential if the final article needs authentic practitioner language, objections, or examples.
+This should be the corrective to simplistic subtraction.
 
-10. **Preserve these phrases in the strategy pack:**
-   - “easier to create, but not easier to receive”
-   - “content production to attention management”
-   - “attention debt”
-   - “message subtraction”
-   - “executive signal-to-noise”
-   - “more content, more noise, more review burden, and more decision fatigue”
+Use the phrase:
+
+> The goal isn't fewer emails. It's less total cognitive load.
+
+Then explain that fewer messages, shorter messages, better segmentation, clearer asks, and better hierarchy are all possible routes to that goal.
+
+### 4. Preserve the contrarian challenge prominently
+
+The article should include the example that combining messages can make people miss relevant information “at the bottom of the other email.”
+
+This is essential because it prevents over-simplification.
+
+Possible strategic lesson:
+
+> Bad subtraction hides the signal. Good subtraction reduces the work required to find it.
+
+### 5. Treat the formula as a heuristic
+
+Use:
+
+```text
+(Volume × Friction) ÷ (Resonance × Personalisation)
+```
+
+as a practical lens.
+
+Do not claim it is mathematically proven.
+
+Suggested framing:
+
+> The maths is less important than the discipline it creates: look at the environment the message lands in, not just the message itself.
+
+### 6. Use “attention debt” carefully
+
+The term is strong and article-worthy.
+
+Recommended treatment:
+
+> We might call this attention debt: the unpaid cognitive load that builds up when it is easy to send and expensive to receive.
+
+Avoid presenting it as an established formal metric unless external research is added.
+
+### 7. Build the checklist around decision discipline, not writing polish
+
+The message subtraction checklist should include questions such as:
+
+- Does this need to go out?
+- Who specifically needs this?
+- What action or decision is required?
+- What is the cost of making everyone read it?
+- Can the audience tell in five seconds whether it applies to them?
+- Is the important information buried inside a bundle?
+- Are we reducing message count or reducing cognitive load?
+- What can be removed, routed, delayed, or made optional?
+
+### 8. Include practical tactics from the OP response
+
+Prioritise these:
+
+- one ask, one decision,
+- visual hierarchy and chunking,
+- lead with “why you specifically,”
+- inverted pyramid / progressive disclosure,
+- segmentation,
+- signal intent and effort,
+- subject tags such as `[FYI]`, `[ACTION]`, `[DECISION]`.
+
+### 9. Make invisible work visible
+
+The practitioner phrase:
+
+> Killing drafts is invisible work, but it’s the work.
+
+should strongly influence the article. It captures the undervalued value of comms judgement in an AI-enabled environment.
+
+This may become a powerful section in the blog article.
+
+### 10. Avoid overclaiming
+
+The Strategist should avoid claiming:
+
+- attention debt is an established metric,
+- the formula is validated,
+- AI is the sole cause of overload,
+- less communication is always better,
+- message count reduction equals success,
+- merging updates is always good,
+- comms teams are responsible for the problem.
+
+### 11. Keep the article pro-AI but pro-discipline
+
+The best stance is:
+
+> AI is useful, but it makes communication discipline more important, not less.
+
+AI can help produce, summarise, segment, and improve messages. But without filtering discipline, it can also create more polished noise.
+
+### 12. Do not discard practitioner texture
+
+The Strategist should preserve the lived-in language around:
+
+- killing drafts,
+- “this doesn’t need to go out,”
+- saturated channels,
+- permanent overload,
+- trusted channels,
+- preserving signal.
+
+This texture is what prevents the final article from becoming generic “AI is changing work” content.
+
+### 13. Strongest recommended phrases to carry forward
+
+Highest priority:
+
+- “AI has made workplace communication easier to create, but not easier to receive.”
+- “The goal isn't fewer emails. It's less total cognitive load.”
+- “We're in the noise reduction business.”
+- “Killing drafts is invisible work, but it’s the work.”
+- “From content production to attention management.”
+- “From artefacts to outcomes.”
+- “Design for high volume as a permanent condition.”
+- “Attention debt.”
+- “The unpaid cognitive load that builds up when it's easy to send and expensive to receive.”
+
+Use carefully or sparingly:
+
+- “Subtraction beats addition.”
+- “Part of the friction in your numerator.”
+- “Jargon monoxide.”
+
+### 14. What the Strategist should avoid flattening
+
+Do not flatten these tensions:
+
+- Fewer messages vs easier-to-process messages.
+- AI-enabled production vs human attention limits.
+- Better writing vs better filtering.
+- Communication as artefact production vs communication as outcome design.
+- Merging updates vs burying relevance.
+- Individual message quality vs system-level channel trust.
+- Content creation speed vs recipient cognitive load.
+- Subtraction as “send less” vs subtraction as “reduce total cognitive load.”
+
+The source material is strongest when these tensions remain visible.
 --- RUN INPUTS END ---

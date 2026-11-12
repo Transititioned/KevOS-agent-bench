@@ -1,0 +1,16 @@
+capabilities:
+  research:
+    name: Research
+    description: Find practitioner evidence, credible contrarian perspectives and multilingual sources; record verified claims, hypotheses and gaps.
+    skill_file: skills/source-research/SKILL.md
+    output_file: research.md
+  adversarial_review:
+    name: Adversarial Review
+    description: Critically test the section and research for unsupported claims, counterarguments, missing context and evidence gaps.
+    skill_file: skills/adversarial-review/SKILL.md
+    output_file: adversarial-review.md
+  editorial_enrichment:
+    name: Editorial Enrichment
+    description: Recommend specific, evidence-aware improvements to the book section without rewriting or modifying the original.
+    skill_file: skills/editorial-enrichment/SKILL.md
+    output_file: editorial-enrichment.md
