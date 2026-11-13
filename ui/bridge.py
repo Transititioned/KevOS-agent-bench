@@ -118,6 +118,9 @@ def generate_consolidated_report(run_id: str, artifacts: dict[str, Any], topic: 
     contrarian_text = extract_contrarian_perspectives(research_text)
     review_text = artifacts.get("adversarial_review", {}).get("content", "")
     editorial_text = artifacts.get("editorial_enrichment", {}).get("content", "")
+    challenge_text = artifacts.get("research_challenge", {}).get("content", "")
+    targeted_text = artifacts.get("targeted_research", {}).get("content", "")
+    consolidated_text = artifacts.get("consolidated_findings", {}).get("content", "")
 
     feedback_text = ""
     feedback_file = run_dir / "feedback.md"
@@ -127,6 +130,7 @@ def generate_consolidated_report(run_id: str, artifacts: dict[str, Any], topic: 
         except Exception:
             feedback_text = ""
 
+    challenge_heading = bool(challenge_text)
     parts = [
         f"# KevOS Agent Bench — Research Mission Report",
         f"\n- **Run ID:** `{run_id}`",
@@ -136,20 +140,28 @@ def generate_consolidated_report(run_id: str, artifacts: dict[str, Any], topic: 
         "## 1. Research Dossier\n",
         research_text or "*No research dossier content.*",
         "\n---\n",
-        "## 2. Contrarian Perspectives & Practitioner Texture\n",
+    ]
+    if challenge_text:
+        parts.extend(["## 2. Overlooked Research Insights (Supplementary Challenge)\n", challenge_text, "\n---\n"])
+    if targeted_text:
+        parts.extend(["## Targeted Research Investigation\n", targeted_text, "\n---\n"])
+    if consolidated_text:
+        parts.extend(["## Consolidated Findings\n", consolidated_text, "\n---\n"])
+    parts.extend([
+        f"## {3 if challenge_heading else 2}. Contrarian Perspectives & Practitioner Texture\n",
         contrarian_text or "*No contrarian perspectives content.*",
         "\n---\n",
-        "## 3. Adversarial Review\n",
+        f"## {4 if challenge_heading else 3}. Adversarial Review\n",
         review_text or "*No adversarial review content.*",
         "\n---\n",
-        "## 4. Editorial Recommendations\n",
+        f"## {5 if challenge_heading else 4}. Editorial Recommendations\n",
         editorial_text or "*No editorial recommendations content.*",
-    ]
+    ])
 
     if feedback_text.strip():
         parts.extend([
             "\n---\n",
-            "## 5. Reviewer Feedback Log\n",
+            f"## {6 if challenge_heading else 5}. Reviewer Feedback Log\n",
             feedback_text.strip(),
         ])
 
@@ -163,6 +175,8 @@ def run_mission_backend(
     topic: str | None = None,
     additional_directions: str | None = None,
     mock_mode: bool = False,
+    enable_research_challenge: bool = False,
+    enable_selective_re_research: bool = False,
 ) -> dict[str, Any]:
     """Execute research mission using backend hooks or test mock mode."""
     # Check concurrency lock
@@ -177,6 +191,8 @@ def run_mission_backend(
     try:
         clean_material = (material or "").strip()
         clean_topic = (topic or "").strip()
+        if enable_selective_re_research and not enable_research_challenge:
+            return {"success": False, "error": "Selective Re-Research requires Research Challenge to be enabled.", "run_id": None, "mock": False}
         if not clean_material and not clean_topic:
             return {
                 "success": False,
@@ -194,13 +210,15 @@ def run_mission_backend(
 
         if mock_mode:
             # Simulated offline test execution for UI evaluation
-            return _run_mock_mission(clean_material, clean_topic, queries)
+            return _run_mock_mission(clean_material, clean_topic, queries, enable_research_challenge, enable_selective_re_research)
 
         # Real backend invocation
         result = run_book_mission(
             material=clean_material,
             topic=clean_topic,
             research_queries=queries,
+            enable_research_challenge=enable_research_challenge,
+            enable_selective_re_research=enable_selective_re_research,
         )
 
         run_id = result.get("run_id", "")
@@ -216,6 +234,10 @@ def run_mission_backend(
             "download_path": download_path,
             "status": "complete",
             "mock": False,
+            "challenge_error": result.get("challenge_error"),
+            "challenge_metadata": result.get("challenge_metadata", {}),
+            "re_research_skip_reason": result.get("re_research_skip_reason", ""),
+            "targeted_research_error": result.get("targeted_research_error"),
         }
 
     except Exception as exc:
@@ -240,6 +262,9 @@ def load_previous_run(run_id: str) -> dict[str, Any]:
 
     for cap_id, filename in [
         ("research", "research.md"),
+        ("research_challenge", "research-challenge.md"),
+        ("targeted_research", "targeted-research.md"),
+        ("consolidated_findings", "consolidated-findings.md"),
         ("adversarial_review", "adversarial-review.md"),
         ("editorial_enrichment", "editorial-enrichment.md"),
     ]:
@@ -279,6 +304,8 @@ def record_user_feedback(run_id: str, feedback: str, target_artifact: str | None
     # Map target artifact display name to canonical capability / artifact name
     mapping = {
         "Research Dossier": "research",
+        "Research Challenge": "research_challenge",
+        "Targeted Research Investigation": "targeted_research",
         "Adversarial Review": "adversarial_review",
         "Editorial Recommendations": "editorial_enrichment",
         "General / Overall Mission": None,
@@ -300,7 +327,9 @@ def record_user_feedback(run_id: str, feedback: str, target_artifact: str | None
         return {"success": False, "error": str(exc)}
 
 
-def _run_mock_mission(material: str, topic: str, queries: list[str] | None) -> dict[str, Any]:
+def _run_mock_mission(material: str, topic: str, queries: list[str] | None,
+                      enable_research_challenge: bool = False,
+                      enable_selective_re_research: bool = False) -> dict[str, Any]:
     """Simulate a test mission for offline UI verification without making live API calls."""
     run_id = f"book-mock-{datetime.now().strftime('%Y%m%d-%H%M%S')}-{uuid.uuid4().hex[:6]}"
     run_dir = ROOT / "runs" / run_id / "kevos-book"
@@ -416,6 +445,20 @@ These are topic-level suggestions; no manuscript passage was supplied for line-s
         "editorial_enrichment": {"path": str(run_dir / "editorial-enrichment.md"), "content": editorial_content},
     }
 
+    if enable_research_challenge:
+        challenge_content = disclaimer + "## Overlooked Research Insights\n\nNo sufficiently distinctive additional findings in this simulated UI run."
+        challenge_path = run_dir / "research-challenge.md"
+        challenge_path.write_text(challenge_content, encoding="utf-8")
+        artifacts["research_challenge"] = {"path": str(challenge_path), "content": challenge_content}
+
+    rerearch_skip_reason = "Selective Re-Research is disabled."
+    if enable_selective_re_research:
+        rerearch_skip_reason = "The mock Challenge did not identify a sufficiently worthwhile unresolved question."
+        consolidated = "# Consolidated Findings\n\nOriginal Research and Challenge artifacts are preserved separately.\n\n## Selective re-research decision\n" + rerearch_skip_reason + "\n"
+        consolidated_path = run_dir / "consolidated-findings.md"
+        consolidated_path.write_text(consolidated, encoding="utf-8")
+        artifacts["consolidated_findings"] = {"path": str(consolidated_path), "content": consolidated}
+
     download_path = generate_consolidated_report(run_id, artifacts, topic=topic)
 
     return {
@@ -425,4 +468,5 @@ These are topic-level suggestions; no manuscript passage was supplied for line-s
         "download_path": download_path,
         "status": "complete",
         "mock": True,
+        "re_research_skip_reason": rerearch_skip_reason,
     }

@@ -31,7 +31,7 @@ def build_app() -> gr.Blocks:
                     <p class="workbench-subtitle">AI Book Research & Adversarial Critique Workbench</p>
                 </div>
                 <div>
-                    <span class="workbench-badge">Runner: Local &bull; Workflow: 3-Stage Sequential</span>
+                    <span class="workbench-badge">Runner: Local &bull; Workflow: Optional 4-Stage Sequential</span>
                 </div>
             </div>
             """
@@ -75,6 +75,16 @@ def build_app() -> gr.Blocks:
                         label="Test Mode (Mock Data for Offline UI Evaluation)",
                         value=False,
                     )
+                    challenge_checkbox = gr.Checkbox(
+                        label="Enable Research Challenge",
+                        value=False,
+                    )
+                    rerearch_checkbox = gr.Checkbox(
+                        label="Enable Selective Re-Research",
+                        value=False,
+                        interactive=False,
+                    )
+                    gr.Markdown("*Enable Research Challenge first. Selective Re-Research runs at most once when Challenge finds a credible unresolved question.*")
                     run_btn = gr.Button(
                         "Run Research Mission",
                         variant="primary",
@@ -102,6 +112,7 @@ def build_app() -> gr.Blocks:
                         choices=[
                             "General / Overall Mission",
                             "Research Dossier",
+                            "Research Challenge",
                             "Adversarial Review",
                             "Editorial Recommendations",
                         ],
@@ -126,6 +137,19 @@ def build_app() -> gr.Blocks:
                             value="*No research dossier available yet. Enter a topic on the left and click **Run Research Mission**, or load an existing run.*",
                             elem_classes=["reading-pane"],
                         )
+
+                    with gr.TabItem("Research Challenge", id="tab_challenge"):
+                        challenge_output = gr.Markdown(
+                            value="*Research Challenge is optional. Enable it before running a mission to independently inspect a bounded source shortlist.*",
+                            elem_classes=["reading-pane"],
+                        )
+
+                    with gr.TabItem("Selective Re-Research", id="tab_targeted_research"):
+                        selected_question_output = gr.Markdown(value="*No selected investigation question.*", elem_classes=["reading-pane"])
+                        targeted_output = gr.Markdown(value="*Selective Re-Research is optional and defaults off.*", elem_classes=["reading-pane"])
+
+                    with gr.TabItem("Consolidated Findings", id="tab_consolidated"):
+                        consolidated_output = gr.Markdown(value="*No consolidated findings available yet.*", elem_classes=["reading-pane"])
 
                     with gr.TabItem("Contrarian Perspectives", id="tab_contrarian"):
                         contrarian_output = gr.Markdown(
@@ -162,6 +186,9 @@ def build_app() -> gr.Blocks:
             outputs=[material_input],
         )
 
+        challenge_checkbox.change(fn=lambda enabled: gr.update(interactive=True) if enabled else gr.update(interactive=False, value=False),
+                                  inputs=[challenge_checkbox], outputs=[rerearch_checkbox])
+
         def handle_recent_runs_change(selected_run: str | None) -> str:
             return selected_run or ""
 
@@ -187,6 +214,8 @@ def build_app() -> gr.Blocks:
             topic: str,
             directions: str,
             mock_mode: bool,
+            enable_challenge: bool,
+            enable_rerearch: bool,
         ):
             try:
                 clean_material = (material or "").strip()
@@ -194,6 +223,10 @@ def build_app() -> gr.Blocks:
                 if not clean_material and not clean_topic:
                     return (
                         '<div class="status-box status-error">❌ <strong>Error:</strong> Enter a research topic or provide book section material to start a mission.</div>',
+                        gr.update(),
+                        gr.update(),
+                        gr.update(),
+                        gr.update(),
                         gr.update(),
                         gr.update(),
                         gr.update(),
@@ -209,6 +242,8 @@ def build_app() -> gr.Blocks:
                     topic=topic,
                     additional_directions=directions,
                     mock_mode=mock_mode,
+                    enable_research_challenge=enable_challenge,
+                    enable_selective_re_research=enable_rerearch,
                 )
 
                 if not result.get("success"):
@@ -216,6 +251,10 @@ def build_app() -> gr.Blocks:
                     status_html = f'<div class="status-box status-error">❌ <strong>Mission Failed:</strong> {err_msg}</div>'
                     return (
                         status_html,
+                        gr.update(),
+                        gr.update(),
+                        gr.update(),
+                        gr.update(),
                         gr.update(),
                         gr.update(),
                         gr.update(),
@@ -231,19 +270,46 @@ def build_app() -> gr.Blocks:
                 download_path = result.get("download_path")
 
                 research_text = artifacts.get("research", {}).get("content", "*Empty research artifact*")
+                challenge_text = artifacts.get("research_challenge", {}).get("content", "*Research Challenge was not enabled for this mission.*")
+                selected_question_text = "*No further investigation was warranted.*"
+                if enable_rerearch:
+                    selected_match = __import__("re").search(r"(?im)^Research question:\s*(.+)$", challenge_text)
+                    selected_question_text = (selected_match.group(1).strip() if selected_match else result.get("re_research_skip_reason", "No further investigation was warranted."))
+                targeted_text = artifacts.get("targeted_research", {}).get("content", "*" + result.get("re_research_skip_reason", "Selective Re-Research was not run.") + "*")
+                consolidated_text = artifacts.get("consolidated_findings", {}).get("content", "*No consolidated findings artifact was produced.*")
+                if result.get("challenge_error"):
+                    challenge_text = f"**Research Challenge failed.** {result['challenge_error']}\n\nThe original research dossier was preserved; no challenge findings were produced."
                 contrarian_text = extract_contrarian_perspectives(research_text)
                 review_text = artifacts.get("adversarial_review", {}).get("content", "*Empty review artifact*")
                 editorial_text = artifacts.get("editorial_enrichment", {}).get("content", "*Empty editorial artifact*")
 
-                if is_mock:
+                if result.get("challenge_error"):
+                    status_html = (
+                        f'<div class="status-box status-mock">Research and later stages completed. Research Challenge failed: '
+                        f'{result.get("challenge_error")}. The original research dossier is preserved.</div>'
+                    )
+                elif is_mock:
                     status_html = (
                         f'<div class="status-box status-mock">⚠️ <strong>TEST MODE COMPLETED (Simulated):</strong> '
                         f'Displaying mock research & critique for UI evaluation. Run ID: <code>{run_id}</code></div>'
                     )
                 else:
+                    challenge_meta = result.get("challenge_metadata", {})
+                    challenge_usage = challenge_meta.get("usage", {})
+                    usage_bits = []
+                    if challenge_meta.get("duration_seconds") is not None:
+                        usage_bits.append(f"{challenge_meta['duration_seconds']}s")
+                    if isinstance(challenge_usage, dict) and challenge_usage.get("total_tokens") is not None:
+                        usage_bits.append(f"{challenge_usage['total_tokens']} tokens")
+                    usage_text = " Research Challenge: " + ", ".join(usage_bits) + "." if usage_bits else ""
+                    stages_text = (
+                        "Successfully executed Research, Research Challenge, Adversarial Review, and Editorial Enrichment."
+                        if artifacts.get("research_challenge") else
+                        "Successfully executed Research, Adversarial Review, and Editorial Enrichment."
+                    )
                     status_html = (
                         f'<div class="status-box status-success">✅ <strong>Mission Completed:</strong> '
-                        f'Successfully executed Research, Adversarial Review, and Editorial Enrichment. Run ID: <code>{run_id}</code></div>'
+                        f'{stages_text}{usage_text} Run ID: <code>{run_id}</code></div>'
                     )
 
                 saved_runs = list_saved_runs()
@@ -256,9 +322,13 @@ def build_app() -> gr.Blocks:
                 return (
                     status_html,
                     research_text,
+                    challenge_text,
                     contrarian_text,
                     review_text,
                     editorial_text,
+                    selected_question_text,
+                    targeted_text,
+                    consolidated_text,
                     run_id,
                     gr.update(choices=saved_runs, value=run_id),
                     dl_update,
@@ -266,19 +336,23 @@ def build_app() -> gr.Blocks:
             except Exception as exc:
                 return (
                     f'<div class="status-box status-error">❌ <strong>Error:</strong> {exc}</div>',
-                    gr.update(), gr.update(), gr.update(), gr.update(),
-                    gr.update(), gr.update(), gr.update(),
+                    gr.update(), gr.update(), gr.update(), gr.update(), gr.update(),
+                    gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(),
                 )
 
         run_btn.click(
             fn=handle_run_mission,
-            inputs=[material_input, topic_input, directions_input, mock_checkbox],
+            inputs=[material_input, topic_input, directions_input, mock_checkbox, challenge_checkbox, rerearch_checkbox],
             outputs=[
                 status_banner,
                 research_output,
+                challenge_output,
                 contrarian_output,
                 review_output,
                 editorial_output,
+                selected_question_output,
+                targeted_output,
+                consolidated_output,
                 run_id_input,
                 recent_runs_dropdown,
                 download_btn,
@@ -297,6 +371,14 @@ def build_app() -> gr.Blocks:
                         gr.update(),
                         gr.update(),
                         gr.update(),
+                        gr.update(),
+                        gr.update(),
+                        gr.update(),
+                        gr.update(),
+                        gr.update(),
+                        gr.update(),
+                        gr.update(),
+                        gr.update(),
                     )
 
                 result = load_previous_run(clean_id)
@@ -309,12 +391,23 @@ def build_app() -> gr.Blocks:
                         gr.update(),
                         gr.update(),
                         gr.update(),
+                        gr.update(),
+                        gr.update(),
+                        gr.update(),
+                        gr.update(),
                     )
 
                 artifacts = result.get("artifacts", {})
                 download_path = result.get("download_path")
 
                 research_text = artifacts.get("research", {}).get("content", "*Empty research artifact*")
+                challenge_text = artifacts.get("research_challenge", {}).get("content", "*No saved Research Challenge artifact for this run.*")
+                selected_question_text = "*No selected investigation question.*"
+                challenge_match = __import__("re").search(r"(?im)^Research question:\s*(.+)$", challenge_text)
+                if challenge_match:
+                    selected_question_text = challenge_match.group(1).strip()
+                targeted_text = artifacts.get("targeted_research", {}).get("content", "*No saved targeted investigation for this run.*")
+                consolidated_text = artifacts.get("consolidated_findings", {}).get("content", "*No saved consolidated findings for this run.*")
                 contrarian_text = extract_contrarian_perspectives(research_text)
                 review_text = artifacts.get("adversarial_review", {}).get("content", "*Empty review artifact*")
                 editorial_text = artifacts.get("editorial_enrichment", {}).get("content", "*Empty editorial artifact*")
@@ -333,15 +426,19 @@ def build_app() -> gr.Blocks:
                 return (
                     status_html,
                     research_text,
+                    challenge_text,
                     contrarian_text,
                     review_text,
                     editorial_text,
+                    selected_question_text,
+                    targeted_text,
+                    consolidated_text,
                     dl_update,
                 )
             except Exception as exc:
                 return (
                     f'<div class="status-box status-error">❌ <strong>Load Failed:</strong> {exc}</div>',
-                    gr.update(), gr.update(), gr.update(), gr.update(), gr.update(),
+                    gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(),
                 )
 
         load_btn.click(
@@ -350,9 +447,13 @@ def build_app() -> gr.Blocks:
             outputs=[
                 status_banner,
                 research_output,
+                challenge_output,
                 contrarian_output,
                 review_output,
                 editorial_output,
+                selected_question_output,
+                targeted_output,
+                consolidated_output,
                 download_btn,
             ],
         )

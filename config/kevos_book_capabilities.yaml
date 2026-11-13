@@ -4,6 +4,16 @@ capabilities:
     description: Find practitioner evidence, credible contrarian perspectives and multilingual sources; record verified claims, hypotheses and gaps.
     skill_file: skills/source-research/SKILL.md
     output_file: research.md
+  research_challenge:
+    name: Research Challenge
+    description: Independently inspect a bounded shortlist of research sources for overlooked, source-supported insights.
+    skill_file: skills/research-challenge/SKILL.md
+    output_file: research-challenge.md
+  targeted_research:
+    name: Selective Re-Research
+    description: Investigate one high-value unresolved question selected from Research Challenge findings.
+    skill_file: skills/targeted-research/SKILL.md
+    output_file: targeted-research.md
   adversarial_review:
     name: Adversarial Review
     description: Critically test the section and research for unsupported claims, counterarguments, missing context and evidence gaps.

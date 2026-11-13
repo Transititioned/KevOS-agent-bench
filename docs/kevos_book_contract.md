@@ -35,6 +35,10 @@ Invalid capability/name, missing run/artifact, unsafe run ID, missing material, 
 
 Install `requirements.txt`; copy `.env.example` to `.env`, set `OPENAI_API_KEY`, and optionally set `OPENAI_MODEL` (default `gpt-5.5`). Research requires a Responses API model/account with web search available. Configuration stays in environment variables; never put manuscript text or credentials in source control.
 
+The Responses client timeout defaults to 600 seconds (`OPENAI_TIMEOUT_SECONDS`), with automatic SDK retries disabled by default (`OPENAI_MAX_RETRIES=0`) to avoid repeating costly web-search work after an ambiguous connection failure. Each completed stage is atomically written before the next stage starts. Mission logs include stage start, completion/failure, elapsed duration and artifact path. A request failure includes its exception class and chained transport cause.
+
+Responses API background mode is a possible future option for long research calls: it returns a response ID and requires polling until a terminal state. It can decouple generation from one long-lived request connection, but the current synchronous UI would still need polling/cancellation and recovery handling. For Zero Data Retention projects, response data is temporarily stored for roughly 10 minutes to support polling, so background mode does not remove the need to persist completed stage artifacts. The current flow remains synchronous.
+
 ## Example
 
 ```python
