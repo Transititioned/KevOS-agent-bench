@@ -117,15 +117,15 @@ def _context_text(context: Mapping[str, Any], capability: str) -> str:
         raise ValueError(f"context.artifacts['{expected}'] is required")
     parts = (["## Original book material\n" + material[:MAX_MATERIAL_CHARS]]
              if material else ["No manuscript material was supplied; assess the evidence and counterarguments for the topic."])
-    if capability == "editorial_enrichment" and artifacts.get("research"):
-        parts.append("## Original research dossier\n" + str(artifacts["research"])[:18000])
+    if capability in {"evidence_synthesis", "editorial_enrichment"} and artifacts.get("research"):
+        parts.append("## Complete original research dossier (including source ledger, claims, qualifications and caveats)\n" + str(artifacts["research"]))
     if artifacts.get("research_challenge"):
-        parts.append("## Supplementary research challenge findings (unverified until checked against cited sources)\n" + str(artifacts["research_challenge"])[:12000])
+        parts.append("## Complete independent Research Challenge findings (preserve stated provenance and limitations)\n" + str(artifacts["research_challenge"]))
     if artifacts.get("targeted_research"):
-        parts.append("## Targeted Research Investigation (additional evidence; assess its provenance and limitations)\n" + str(artifacts["targeted_research"])[:16000])
+        parts.append("## Complete Selective Re-Research investigation (preserve source evidence and limitations)\n" + str(artifacts["targeted_research"]))
     if artifacts.get("consolidated_findings"):
-        parts.append("## Consolidated research evidence\n" + str(artifacts["consolidated_findings"])[:12000])
-    parts.append("## Relevant prior artifact\n" + str(prior)[:18000])
+        parts.append("## Evidence synthesis\n" + str(artifacts["consolidated_findings"]))
+    parts.append("## Relevant prior artifact\n" + str(prior))
     return "\n\n".join(parts)
 
 
@@ -169,8 +169,8 @@ def _targeted_research_context(context: Mapping[str, Any]) -> str:
             f"## Precise unresolved question\n{context.get('research_question', '')}\n\n"
             f"## Why this lead was selected\n{context.get('selection_rationale', '')}\n\n"
             f"## Known limitations or conflicting interpretations\n{context.get('limitations', 'Not specified by Challenge.')}\n\n"
-            "## Original research evidence\n" + str(artifacts.get("research", ""))[:16000] + "\n\n"
-            "## Independent Challenge evidence\n" + str(artifacts.get("research_challenge", ""))[:12000])
+            "## Complete original research evidence\n" + str(artifacts.get("research", "")) + "\n\n"
+            "## Complete independent Challenge evidence\n" + str(artifacts.get("research_challenge", "")))
 
 
 def _challenge_lead(challenge_text: str) -> dict[str, str] | None:
@@ -188,29 +188,6 @@ def _challenge_lead(challenge_text: str) -> dict[str, str] | None:
     return {"finding": fields["Selected finding"], "question": fields["Research question"],
             "rationale": fields.get("Why it matters", "A promising unresolved question was identified."),
             "limitations": fields.get("Known limitations", "Not specified by Challenge.")}
-
-
-def _save_consolidated_findings(run_dir: Path, targeted: str | None, skipped_reason: str | None = None) -> str:
-    content = ["# Consolidated Findings", "",
-               "Earlier artifacts remain authoritative and are preserved separately. This view labels provenance; another research pass does not itself prove a claim.", "",
-               "## Original Research findings", "Source-reported claims and interpretations from `research.md`; consult that artifact for citations and caveats.", "",
-               "## Independent Challenge findings", "Additional observations from `research-challenge.md`; retain their evidence types and source limitations.", ""]
-    if targeted:
-        match = re.search(r"(?ms)^## Consolidated Findings\s*\n(.*?)(?=^## |\Z)", targeted)
-        content.extend(["## Targeted Research synthesis", match.group(1).strip() if match else "See `targeted-research.md` for the investigation, contradictions, and evidence-labelled synthesis.", ""])
-    elif skipped_reason:
-        content.extend(["## Selective re-research decision", f"No investigation was run: {skipped_reason}", ""])
-    content.extend(["## Evidence status guide", "- **Verified observations:** Directly established by accessible primary or independent sources, as cited in the source artifacts.",
-                    "- **Source-reported but uncorroborated claims:** Supported by one account; not evidence of prevalence.",
-                    "- **Reasonable interpretations:** Practical implications inferred from reported evidence.",
-                    "- **Speculative hypotheses:** Explanations or proposals that remain untested.", "",
-                    "## Disagreements and remaining hypotheses", "Research, Challenge, and Targeted Research artifacts are retained separately. Their contradictions and unresolved hypotheses are not overwritten."])
-    output = "\n".join(content) + "\n"
-    path = run_dir / "consolidated-findings.md"
-    temporary = path.with_suffix(path.suffix + ".tmp")
-    temporary.write_text(output, encoding="utf-8")
-    temporary.replace(path)
-    return output
 
 
 def run_capability(capability: str, context: Mapping[str, Any], *, run_id: str | None = None,
@@ -276,6 +253,11 @@ Known limitations: evidence gaps, conflicts, or None
 
 Use web search to investigate only the selected question, with enough searching to establish the evidence rather than repeating the original mission. Seek independent corroboration and contradiction, original implementation reports and postmortems, alternative explanations, other practitioner outcomes, feasibility and operational constraints, and adjacent-industry approaches when useful. Prefer primary sources and distinguish original reporting from derivative articles. Do not broaden into an unrelated literature review. Return two separate sections: `## Targeted Research Investigation` with Selected finding, Research question, Why it matters, Additional evidence discovered (new sources, direct URL, evidence type, what each establishes), Corroboration and contradictions, Alternative explanations, Practical implications, Feasibility and constraints, Confidence after investigation (stronger/unchanged/weaker/unresolved with reasons), Remaining questions, and Direct source URLs. Then `## Consolidated Findings` with a concise synthesis preserving original Research, independent Challenge, and targeted evidence, disagreements and unresolved hypotheses; distinguish verified observations, source-reported but uncorroborated claims, reasonable interpretations, and speculative hypotheses. Explicitly say if the original insight was not substantiated. Do not manufacture a conclusion. Report access limitations.
 """
+    elif capability == "evidence_synthesis":
+        prompt += """
+
+Independently synthesize the complete supplied evidence base, including the Research dossier, optional Challenge and Selective Re-Research, and Adversarial Review. This capability runs even when optional stages are disabled. Produce `# Consolidated Findings` with major themes, minor themes, conditional approaches, evidence strength and source qualifications, contradictions, avoidable mistakes, unresolved hypotheses, and implications for the chapter. Preserve claim/source relationships and distinguish verified observations, single-source reports, interpretations and speculation. Reconcile disagreements only when evidence supports doing so; otherwise state both positions and their limitations. Do not use placeholder descriptions or treat inclusion in an artifact as verification.
+"""
     else:
         if capability == "editorial_enrichment" and not has_material:
             prompt += "\n\nProvide general editorial angles and suggested book content for this topic, grounded in the research and review. Do not invent or imply passage-specific edits. Cite only source URLs already in the supplied research artifact."
@@ -330,7 +312,7 @@ def run_book_mission(material: str = "", *, topic: str | None = None, run_id: st
                      model: str | None = None, research_queries: list[str] | None = None,
                      enable_research_challenge: bool = False,
                      enable_selective_re_research: bool = False) -> dict[str, Any]:
-    """Run the three book workflow stages; original input is never changed."""
+    """Run the book workflow stages; original input is never changed."""
     if not isinstance(material, str):
         raise ValueError("material must be a string")
     if not material.strip() and not (topic or "").strip():
@@ -382,17 +364,12 @@ def run_book_mission(material: str = "", *, topic: str | None = None, run_id: st
                     try:
                         targeted_result = run_stage("Selective Re-Research", "targeted_research", targeted_context)
                         artifacts["targeted_research"] = targeted_result["artifact"]
-                        consolidated = _save_consolidated_findings(_run_dir(run_id), artifacts["targeted_research"]["content"])
-                        artifacts["consolidated_findings"] = {"path": str(_run_dir(run_id) / "consolidated-findings.md"), "content": consolidated}
                         re_research_skip_reason = ""
                     except Exception as exc:
                         targeted_error = str(exc)
                         re_research_skip_reason = f"The selected investigation failed: {exc}"
         except Exception as exc:
             challenge_error = str(exc)
-    if enable_selective_re_research and "consolidated_findings" not in artifacts:
-        consolidated = _save_consolidated_findings(_run_dir(run_id), None, re_research_skip_reason)
-        artifacts["consolidated_findings"] = {"path": str(_run_dir(run_id) / "consolidated-findings.md"), "content": consolidated}
     review_artifacts = {"research": artifacts["research"]["content"]}
     if artifacts.get("research_challenge"):
         review_artifacts["research_challenge"] = artifacts["research_challenge"]["content"]
@@ -403,7 +380,11 @@ def run_book_mission(material: str = "", *, topic: str | None = None, run_id: st
     review_context = {**common, "artifacts": review_artifacts}
     result = run_stage("Adversarial Review", "adversarial_review", review_context)
     artifacts["adversarial_review"] = result["artifact"]
+    synthesis_artifacts = {**review_artifacts, "adversarial_review": artifacts["adversarial_review"]["content"]}
+    result = run_stage("Evidence Synthesis", "evidence_synthesis", {**common, "artifacts": synthesis_artifacts})
+    artifacts["consolidated_findings"] = result["artifact"]
     editorial_artifacts = {"research": artifacts["research"]["content"], "adversarial_review": artifacts["adversarial_review"]["content"]}
+    editorial_artifacts["consolidated_findings"] = artifacts["consolidated_findings"]["content"]
     if artifacts.get("research_challenge"):
         editorial_artifacts["research_challenge"] = artifacts["research_challenge"]["content"]
     if artifacts.get("targeted_research"):

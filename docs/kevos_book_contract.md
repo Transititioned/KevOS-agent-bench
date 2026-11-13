@@ -25,7 +25,7 @@ Reads an existing artifact for that run. `artifact_name` is the capability ID or
 Appends human feedback to `runs/<run_id>/kevos-book/feedback.md`; feedback may be a string or JSON-serializable mapping. Returns `{"run_id": str, "path": str, "saved": True}`.
 
 ### `run_book_mission(material, *, topic=None, run_id=None, model=None, research_queries=None) -> dict`
-Runs Research → Adversarial Review → Editorial Enrichment sequentially using the same hooks. `material` is the existing book section as text. Returns `{"run_id": str, "artifacts": {<capability>: {"path": str, "content": str}}, "status": "complete"}`. Original material is read only and is never overwritten.
+Runs Research → optional Research Challenge → optional Selective Re-Research → Adversarial Review → Evidence Synthesis → Editorial Enrichment sequentially using the same hooks. Evidence Synthesis always runs and saves `consolidated-findings.md`, even when optional research stages are disabled. `material` is the existing book section as text. Returns `{"run_id": str, "artifacts": {<capability>: {"path": str, "content": str}}, "status": "complete"}`. Original material is read only and is never overwritten.
 
 ## Errors
 

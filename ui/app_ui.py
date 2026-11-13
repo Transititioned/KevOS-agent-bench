@@ -113,6 +113,8 @@ def build_app() -> gr.Blocks:
                             "General / Overall Mission",
                             "Research Dossier",
                             "Research Challenge",
+                            "Targeted Research Investigation",
+                            "Consolidated Findings",
                             "Adversarial Review",
                             "Editorial Recommendations",
                         ],
@@ -288,6 +290,11 @@ def build_app() -> gr.Blocks:
                         f'<div class="status-box status-mock">Research and later stages completed. Research Challenge failed: '
                         f'{result.get("challenge_error")}. The original research dossier is preserved.</div>'
                     )
+                elif result.get("targeted_research_error"):
+                    status_html = (
+                        f'<div class="status-box status-mock">Research and later stages completed, but Selective Re-Research failed: '
+                        f'{result.get("targeted_research_error")}. Consolidated findings reflect the available evidence.</div>'
+                    )
                 elif is_mock:
                     status_html = (
                         f'<div class="status-box status-mock">⚠️ <strong>TEST MODE COMPLETED (Simulated):</strong> '
@@ -303,9 +310,9 @@ def build_app() -> gr.Blocks:
                         usage_bits.append(f"{challenge_usage['total_tokens']} tokens")
                     usage_text = " Research Challenge: " + ", ".join(usage_bits) + "." if usage_bits else ""
                     stages_text = (
-                        "Successfully executed Research, Research Challenge, Adversarial Review, and Editorial Enrichment."
+                        "Successfully executed Research, Research Challenge, Adversarial Review, Evidence Synthesis, and Editorial Enrichment."
                         if artifacts.get("research_challenge") else
-                        "Successfully executed Research, Adversarial Review, and Editorial Enrichment."
+                        "Successfully executed Research, Adversarial Review, Evidence Synthesis, and Editorial Enrichment."
                     )
                     status_html = (
                         f'<div class="status-box status-success">✅ <strong>Mission Completed:</strong> '

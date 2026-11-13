@@ -65,7 +65,7 @@ def list_saved_runs() -> list[str]:
 
 def extract_contrarian_perspectives(research_content: str) -> str:
     """Extract contrarian perspectives / practitioner disagreements section from research artifact.
-    If not separately sectioned, returns the full research artifact as specified by the contract.
+    If no separately headed section is present, return an explicit unavailable message.
     """
     if not research_content or not research_content.strip():
         return ""
@@ -100,12 +100,7 @@ def extract_contrarian_perspectives(research_content: str) -> str:
             + section_text
         )
 
-    # When not separately available as an isolated section, display the appropriate existing artifact
-    return (
-        "> *Source: Complete Research Dossier (`research.md`). Contrarian perspectives, edge cases, "
-        "and practitioner disagreements are documented within the findings below.*\n\n"
-        + research_content
-    )
+    return "*No separately headed contrarian perspectives section could be extracted from the Research Dossier.*"
 
 
 def generate_consolidated_report(run_id: str, artifacts: dict[str, Any], topic: str | None = None) -> str:
@@ -269,7 +264,7 @@ def load_previous_run(run_id: str) -> dict[str, Any]:
         ("editorial_enrichment", "editorial-enrichment.md"),
     ]:
         try:
-            art = get_artifact(clean_id, cap_id)
+            art = get_artifact(clean_id, filename)
             artifacts[cap_id] = art.get("artifact", {})
         except Exception as exc:
             errors.append(f"{cap_id}: {exc}")
@@ -306,6 +301,7 @@ def record_user_feedback(run_id: str, feedback: str, target_artifact: str | None
         "Research Dossier": "research",
         "Research Challenge": "research_challenge",
         "Targeted Research Investigation": "targeted_research",
+        "Consolidated Findings": "evidence_synthesis",
         "Adversarial Review": "adversarial_review",
         "Editorial Recommendations": "editorial_enrichment",
         "General / Overall Mission": None,
@@ -454,10 +450,19 @@ These are topic-level suggestions; no manuscript passage was supplied for line-s
     rerearch_skip_reason = "Selective Re-Research is disabled."
     if enable_selective_re_research:
         rerearch_skip_reason = "The mock Challenge did not identify a sufficiently worthwhile unresolved question."
-        consolidated = "# Consolidated Findings\n\nOriginal Research and Challenge artifacts are preserved separately.\n\n## Selective re-research decision\n" + rerearch_skip_reason + "\n"
-        consolidated_path = run_dir / "consolidated-findings.md"
-        consolidated_path.write_text(consolidated, encoding="utf-8")
-        artifacts["consolidated_findings"] = {"path": str(consolidated_path), "content": consolidated}
+    consolidated = (
+        "# Consolidated Findings\n\n"
+        "## Major theme: communication efficiency depends on context\n"
+        "The simulated dossier suggests concise messages can reduce parsing effort, while practitioner objections show that removing needed risk context can impair decisions. The sources are illustrative mock data and are not verified.\n\n"
+        "## Contradictions and qualifications\n"
+        "Observed communication burden and coordination needs point in different directions; the mock evidence does not establish a universal threshold or causal effect.\n\n"
+        "## Remaining questions\n"
+        "Test effects across team types, communication cultures and regulated settings.\n\n"
+        f"## Selective re-research decision\n{rerearch_skip_reason}\n"
+    )
+    consolidated_path = run_dir / "consolidated-findings.md"
+    consolidated_path.write_text(consolidated, encoding="utf-8")
+    artifacts["consolidated_findings"] = {"path": str(consolidated_path), "content": consolidated}
 
     download_path = generate_consolidated_report(run_id, artifacts, topic=topic)
 

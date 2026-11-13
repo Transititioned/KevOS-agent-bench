@@ -19,6 +19,11 @@ capabilities:
     description: Critically test the section and research for unsupported claims, counterarguments, missing context and evidence gaps.
     skill_file: skills/adversarial-review/SKILL.md
     output_file: adversarial-review.md
+  evidence_synthesis:
+    name: Evidence Synthesis
+    description: Synthesize all research and review evidence into qualified themes, contradictions, and chapter implications.
+    skill_file: skills/evidence-synthesis/SKILL.md
+    output_file: consolidated-findings.md
   editorial_enrichment:
     name: Editorial Enrichment
     description: Recommend specific, evidence-aware improvements to the book section without rewriting or modifying the original.
