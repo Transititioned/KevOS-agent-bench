@@ -200,7 +200,8 @@ def _challenge_lead(challenge_text: str) -> dict[str, Any] | None:
         return None
     fields: dict[str, str] = {}
     keys = ("Selected finding", "Research question", "Why it matters", "Known limitations",
-            "Relevance to original mission", "Expected impact on original question")
+            "Relevance to original mission", "Centrality to original inquiry",
+            "Expected impact on original question", "Why necessary to resolve a central uncertainty")
     for key in keys:
         field_match = re.search(rf"(?im)^{re.escape(key)}:\s*(.+?)(?=\n(?:[A-Z][A-Za-z /-]+:|## )|\Z)", challenge_text, re.S)
         if field_match:
@@ -208,6 +209,7 @@ def _challenge_lead(challenge_text: str) -> dict[str, Any] | None:
     if match.group(1).upper() == "SKIP":
         return {"investigate": False, "skip_reason": fields.get("Why it matters") or "Challenge selected SKIP."}
     required = ("Selected finding", "Research question", "Relevance to original mission",
+                "Centrality to original inquiry",
                 "Expected impact on original question", "Why it matters")
     missing = [key for key in required if not fields.get(key) or fields[key].strip().lower() in {
         "none", "n/a", "na", "not supplied", "not applicable"}]
@@ -216,18 +218,17 @@ def _challenge_lead(challenge_text: str) -> dict[str, Any] | None:
     relevance = fields["Relevance to original mission"].strip().upper()
     if relevance not in {"DIRECT", "SUPPORTING", "ADJACENT"}:
         return {"investigate": False, "skip_reason": f"Challenge relevance must be DIRECT, SUPPORTING or ADJACENT; received {fields['Relevance to original mission']!r}."}
+    centrality = fields["Centrality to original inquiry"].strip().upper()
+    if centrality not in {"CENTRAL", "CONTRIBUTORY", "PERIPHERAL"}:
+        return {"investigate": False, "skip_reason": f"Challenge centrality must be CENTRAL, CONTRIBUTORY or PERIPHERAL; received {fields['Centrality to original inquiry']!r}."}
     if relevance == "ADJACENT":
         return {"investigate": False, "skip_reason": "Selected finding is ADJACENT to the original mission; it is preserved in Challenge evidence without paid follow-up."}
-    if relevance == "SUPPORTING":
-        impact = fields["Expected impact on original question"].lower()
-        rationale = fields["Why it matters"].lower()
-        explicit_materiality = "materially" in impact and "materially" in rationale
-        negations = ("not materially", "does not materially", "unlikely to materially", "may not materially")
-        negated = any(term in impact or term in rationale for term in negations)
-        if not explicit_materiality or negated:
-            return {"investigate": False, "skip_reason": "SUPPORTING finding lacks an explicit, affirmative rationale for material impact on the original problem."}
+    if centrality == "PERIPHERAL":
+        return {"investigate": False, "skip_reason": "Selected finding is PERIPHERAL to the original inquiry; it is preserved in Challenge evidence without paid follow-up."}
+    if centrality == "CONTRIBUTORY" and not fields.get("Why necessary to resolve a central uncertainty", "").strip():
+        return {"investigate": False, "skip_reason": "CONTRIBUTORY finding lacks an explicit justification that it is necessary to resolve a central uncertainty."}
     return {"investigate": True, "finding": fields["Selected finding"], "question": fields["Research question"],
-            "relevance": relevance, "expected_impact": fields["Expected impact on original question"],
+            "relevance": relevance, "centrality": centrality, "expected_impact": fields["Expected impact on original question"],
             "rationale": fields["Why it matters"],
             "limitations": fields.get("Known limitations", "Not specified by Challenge.")}
 
@@ -280,13 +281,15 @@ Investigate the supplied source URLs using web search. Review no more than six c
         if context.get("enable_selective_re_research"):
             prompt += """
 
-Also choose at most one unresolved finding for possible Selective Re-Research. Select the unresolved finding most likely to materially change the explanation, practitioner decision or conclusion concerning the ORIGINAL research problem. Novelty, technical specificity, source volume and investigability do not by themselves justify selection. Classify relevance to the Mission Anchor as DIRECT, SUPPORTING or ADJACENT. ADJACENT discoveries may be preserved as useful evidence but must not be selected for paid follow-up. SUPPORTING findings qualify only when their material effect on the original problem is explicit. Skip adequately supported findings and findings whose relevance is unclear. End with this exact parseable section:
+Also choose at most one unresolved finding for possible Selective Re-Research. Classify relevance as DIRECT, SUPPORTING or ADJACENT and centrality as CENTRAL (essential to the original inquiry), CONTRIBUTORY (relevant explanation or implementation detail), or PERIPHERAL (interesting but secondary). Relevance and centrality are separate judgements. CENTRAL findings may proceed. PERIPHERAL findings must be skipped. CONTRIBUTORY findings normally skip unless explicitly justified as necessary to resolve a central uncertainty. ADJACENT findings must be skipped regardless of centrality. Novelty, technical specificity, source volume and investigability alone do not justify selection. Skip adequately supported findings and findings whose relevance is unclear. End with this exact parseable section:
 ## Selective Re-Research Decision
 Decision: INVESTIGATE or SKIP
 Selected finding: one finding, or None
 Research question: one precise uncertainty, or None
 Relevance to original mission: DIRECT, SUPPORTING or ADJACENT
+Centrality to original inquiry: CENTRAL, CONTRIBUTORY or PERIPHERAL
 Expected impact on original question: one concise sentence
+Why necessary to resolve a central uncertainty: explicit justification for CONTRIBUTORY; otherwise None
 Why it matters: brief rationale, or reason to skip
 Known limitations: evidence gaps, conflicts, or None
 """

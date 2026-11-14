@@ -197,12 +197,13 @@ class ResearchChallengeTests(unittest.TestCase):
         cases = {
             "adjacent": ("Decision: INVESTIGATE\nSelected finding: Temporal retrieval design\nResearch question: "
                 "How fresh is enterprise knowledge?\nRelevance to original mission: ADJACENT\n"
+                "Centrality to original inquiry: PERIPHERAL\n"
                 "Expected impact on original question: This may change temporal retrieval design.\n"
                 "Why it matters: The finding is useful for knowledge infrastructure.\nKnown limitations: Few cases", "ADJACENT"),
             "missing": ("Decision: INVESTIGATE\nSelected finding: A lead\nResearch question: Check it\n"
                 "Why it matters: Could be useful.", "missing required field"),
             "invalid": ("Decision: INVESTIGATE\nSelected finding: A lead\nResearch question: Check it\n"
-                "Relevance to original mission: MAYBE\nExpected impact on original question: Unclear.\n"
+                "Relevance to original mission: MAYBE\nCentrality to original inquiry: CENTRAL\nExpected impact on original question: Unclear.\n"
                 "Why it matters: Unclear.", "must be DIRECT"),
         }
         for name, (decision, expected_reason) in cases.items():
@@ -227,12 +228,13 @@ class ResearchChallengeTests(unittest.TestCase):
         saved_selection = (Path(__file__).parent / "fixtures/research-challenge-adjacent-selection.md").read_text(encoding="utf-8")
         lead = harness._challenge_lead(saved_selection)
         self.assertFalse(lead["investigate"])
-        self.assertIn("Relevance to original mission", lead["skip_reason"])
+        self.assertIn("PERIPHERAL", lead["skip_reason"])
 
     def test_direct_finding_can_launch_targeted_research(self):
         direct = ("Decision: INVESTIGATE\nSelected finding: Data quality prevents cross-team coordination\n"
                   "Research question: Does master-data fragmentation materially affect collaboration?\n"
                   "Relevance to original mission: DIRECT\n"
+                  "Centrality to original inquiry: CENTRAL\n"
                   "Expected impact on original question: It may materially change the explanation for collaboration failures.\n"
                   "Why it matters: It may materially connect individual productivity gains to collective workflow outcomes.\n"
                   "Known limitations: Evidence is case-based.")
@@ -255,12 +257,34 @@ class ResearchChallengeTests(unittest.TestCase):
     def test_supporting_finding_requires_and_accepts_explicit_material_effect(self):
         fields = ("Decision: INVESTIGATE\nSelected finding: Workflow handoffs depend on shared context\n"
                   "Research question: Does the contributing condition alter team outcomes?\n"
-                  "Relevance to original mission: SUPPORTING\n")
+                  "Relevance to original mission: SUPPORTING\nCentrality to original inquiry: CONTRIBUTORY\n")
         insufficient = fields + "Expected impact on original question: It may be relevant.\nWhy it matters: Interesting evidence."
         self.assertFalse(harness._challenge_lead(insufficient)["investigate"])
-        sufficient = fields + ("Expected impact on original question: This may materially change the explanation of team outcomes.\n"
-            "Why it matters: This materially affects whether individual productivity becomes collective capability.\nKnown limitations: One context.")
+        sufficient = fields + ("Expected impact on original question: It could clarify a key mechanism in team outcomes.\n"
+            "Why necessary to resolve a central uncertainty: Without testing this handoff mechanism, we cannot determine whether individual productivity becomes collective capability.\n"
+            "Why it matters: It resolves the unresolved mechanism behind team outcomes.\nKnown limitations: One context.")
         self.assertTrue(harness._challenge_lead(sufficient)["investigate"])
+
+    def test_centrality_gate_skips_peripheral_and_legacy_but_allows_central(self):
+        base = ("Decision: INVESTIGATE\nSelected finding: AI code-generation benchmark\nResearch question: Does it answer the mission?\n"
+                "Relevance to original mission: SUPPORTING\nExpected impact on original question: It informs implementation choices.\n"
+                "Why it matters: It is useful context.\nKnown limitations: Single study.\n")
+        peripheral = harness._challenge_lead(base + "Centrality to original inquiry: PERIPHERAL\n")
+        self.assertFalse(peripheral["investigate"])
+        self.assertIn("PERIPHERAL", peripheral["skip_reason"])
+        central = harness._challenge_lead(base + "Centrality to original inquiry: CENTRAL\n")
+        self.assertTrue(central["investigate"])
+        self.assertEqual(central["centrality"], "CENTRAL")
+        self.assertFalse(harness._challenge_lead(base)["investigate"])
+        self.assertFalse(harness._challenge_lead(base + "Centrality to original inquiry: MAYBE\n")["investigate"])
+
+    def test_central_software_engineering_finding_remains_eligible(self):
+        technical_mission = ("Decision: INVESTIGATE\nSelected finding: Repository-wide type checking prevents integration regressions\n"
+            "Research question: Does incremental typing reduce defects in this software-engineering workflow?\n"
+            "Relevance to original mission: DIRECT\nCentrality to original inquiry: CENTRAL\n"
+            "Expected impact on original question: It directly answers the engineering practice under study.\n"
+            "Why it matters: The investigation resolves the mission's primary engineering uncertainty.\nKnown limitations: Mixed-language teams.")
+        self.assertTrue(harness._challenge_lead(technical_mission)["investigate"])
 
     def test_adjacent_findings_reach_synthesis_and_editorial_contexts(self):
         adjacent = "ADJACENT finding: temporal retrieval governs knowledge freshness; retain for a future chapter."
@@ -387,6 +411,7 @@ This later section must not appear in the Contrarian tab.
             challenge = ("Decision: INVESTIGATE\nSelected finding: A contested implementation result\n"
                          "Research question: Does it materially change the original explanation?\n"
                          "Relevance to original mission: DIRECT\n"
+                         "Centrality to original inquiry: CENTRAL\n"
                          "Expected impact on original question: It may materially change the explanation.\n"
                          "Why it matters: It may materially alter the original problem's causal account.\n"
                          "Known limitations: Single-site evidence")
@@ -436,7 +461,7 @@ This later section must not appear in the Contrarian tab.
     def test_selective_reresearch_failure_is_reported_and_synthesis_still_runs(self):
         calls = []
         challenge = ("Decision: INVESTIGATE\nSelected finding: Lead\nResearch question: Check it\n"
-                     "Relevance to original mission: DIRECT\nExpected impact on original question: It may change the conclusion.\n"
+                     "Relevance to original mission: DIRECT\nCentrality to original inquiry: CENTRAL\nExpected impact on original question: It may change the conclusion.\n"
                      "Why it matters: It could change the original explanation.\nKnown limitations: None")
 
         def fake_run(capability, context, **kwargs):
@@ -455,7 +480,7 @@ This later section must not appear in the Contrarian tab.
 
     def test_selective_decision_parsing_and_complete_handoff(self):
         lead = harness._challenge_lead("Decision: INVESTIGATE\nSelected finding: X\nResearch question: Y\n"
-            "Relevance to original mission: DIRECT\nExpected impact on original question: It may change the conclusion.\n"
+            "Relevance to original mission: DIRECT\nCentrality to original inquiry: CENTRAL\nExpected impact on original question: It may change the conclusion.\n"
             "Why it matters: It challenges the existing explanation.\nKnown limitations: Limited evidence")
         self.assertEqual(lead["question"], "Y")
         self.assertFalse(harness._challenge_lead("Decision: SKIP\nSelected finding: None\nResearch question: None")["investigate"])
