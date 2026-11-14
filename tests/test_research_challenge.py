@@ -179,7 +179,15 @@ class ResearchChallengeTests(unittest.TestCase):
             run_dir = root / "runs" / "fixture-run" / "kevos-book"
             run_dir.mkdir(parents=True)
             for name, content in {
-                "research.md": "# Research\nsource https://example.org",
+                "research.md": """# Enterprise Transformation Research
+## Contrarian perspectives
+The frequently cited transformation failure rate has uncertain provenance.
+
+Practitioners report that established frameworks can work when adapted to legacy systems, data quality and organisational capability.
+
+## Distinctive research findings
+This later section must not appear in the Contrarian tab.
+""",
                 "research-challenge.md": "## Overlooked Research Insights\nA distinct clue",
                 "adversarial-review.md": "# Review",
                 "editorial-enrichment.md": "# Editorial",
@@ -191,7 +199,13 @@ class ResearchChallengeTests(unittest.TestCase):
             self.assertTrue(loaded["success"])
             self.assertIn("research_challenge", loaded["artifacts"])
             self.assertIn("A distinct clue", report)
-            self.assertIn("# Research", report)
+            self.assertIn("# Enterprise Transformation Research", report)
+            extracted = bridge.extract_contrarian_perspectives(loaded["artifacts"]["research"]["content"])
+            self.assertIn("uncertain provenance", extracted)
+            self.assertIn("adapted to legacy systems", extracted)
+            self.assertNotIn("This later section", extracted)
+            self.assertEqual(loaded["artifacts"]["research"]["content"],
+                (run_dir / "research.md").read_text(encoding="utf-8"))
 
     def test_selective_reresearch_investigates_once_then_synthesizes_and_reloads(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -299,6 +313,43 @@ Do not include this later section.
         )
         self.assertIn("Distinct disagreement.", extracted)
         self.assertNotIn("Later content.", extracted)
+
+    def test_contrarian_extractor_accepts_heading_variants_and_stops_at_markdown_section(self):
+        for heading in ("## Contrarian Perspectives", "Contrarian Perspectives:",
+                        "**Contrarian perspectives**", "### Counterarguments and Practitioner Viewpoints",
+                        "Practitioner disagreements"):
+            with self.subTest(heading=heading):
+                extracted = bridge.extract_contrarian_perspectives(
+                    f"{heading}\nAlternative explanation: capability constraints matter.\n\n"
+                    "## Distinctive research findings\nDo not include the findings."
+                )
+                self.assertIn("capability constraints matter", extracted)
+                self.assertNotIn("Do not include", extracted)
+
+    def test_contrarian_extractor_stops_at_plain_text_synthesis_heading(self):
+        dossier = """Contrarian perspectives
+The 70% transformation-failure statistic has uncertain provenance.
+
+Established frameworks can work when adapted to legacy systems and local capability.
+
+Short evidence-based synthesis
+The mainstream conclusion remains persuasive, with implementation qualifications.
+
+Distinctive research findings
+Later research content is outside the extracted section.
+"""
+        extracted = bridge.extract_contrarian_perspectives(dossier)
+        self.assertIn("uncertain provenance", extracted)
+        self.assertIn("adapted to legacy systems", extracted)
+        self.assertNotIn("The mainstream conclusion", extracted)
+        self.assertNotIn("Later research content", extracted)
+
+    def test_contrarian_extractor_fallback_is_explicit_when_section_missing(self):
+        extracted = bridge.extract_contrarian_perspectives(
+            "## Distinctive research findings\nMainstream finding only.\n\nShort evidence-based synthesis\nSummary."
+        )
+        self.assertIn("No separately headed contrarian perspectives section", extracted)
+        self.assertNotIn("Mainstream finding", extracted)
 
 
 if __name__ == "__main__":

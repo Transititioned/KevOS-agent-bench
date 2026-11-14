@@ -74,25 +74,40 @@ def extract_contrarian_perspectives(research_content: str) -> str:
     target_start = None
     target_level = None
 
+    plain_section_titles = {
+        "research", "research overview", "executive summary", "key findings",
+        "distinctive research findings", "short evidence-based synthesis",
+        "evidence-based synthesis", "synthesis", "conclusion", "conclusions",
+        "research gaps", "limitations", "methodology", "source ledger", "sources",
+        "mainstream findings", "mainstream conclusion", "practitioner disagreements",
+        "counterarguments and practitioner viewpoints", "contrarian perspectives",
+        "contrarian perspective", "opposing perspectives", "disagreements",
+    }
+
     def section_heading(line: str) -> tuple[int, str] | None:
         stripped = line.strip()
-        markdown = re.match(r"^(#{1,4})\s+(.*)$", stripped)
+        markdown = re.match(r"^(#{1,6})\s+(.*)$", stripped)
         if markdown:
-            return len(markdown.group(1)), markdown.group(2).lower()
-        # Some research responses use a standalone plain-text heading.
-        plain = re.sub(r"\s*:\s*$", "", stripped).lower()
-        if plain in {"contrarian perspectives", "contrarian perspective"}:
-            return 2, plain
+            level, title = len(markdown.group(1)), markdown.group(2)
+        else:
+            # Plain-text section titles are recognized only when the whole line
+            # matches a known heading, so body prose cannot truncate extraction.
+            level, title = 2, stripped
+        title = re.sub(r"[*_`~]", "", title)
+        title = re.sub(r"^\d+(?:\.\d+)*[.)]?\s+", "", title)
+        title = re.sub(r"\s*[:.!?]+\s*$", "", title).strip().lower()
+        if markdown or title in plain_section_titles:
+            return level, title
         return None
 
     for idx, line in enumerate(lines):
         heading = section_heading(line)
         if heading:
             level, heading_text = heading
-            if any(term in heading_text for term in [
-                "counterargument", "contrarian", "opposing", "disagreement", 
-                "edge case", "practitioner viewpoint", "practitioner perspective"
-            ]):
+            if any(term in heading_text for term in (
+                "counterargument", "contrarian", "opposing", "disagreement",
+                "edge case", "practitioner viewpoint", "practitioner perspective",
+            )):
                 target_start = idx
                 target_level = level
                 break
