@@ -116,9 +116,10 @@ def _context_text(context: Mapping[str, Any], capability: str) -> str:
     prior = artifacts.get(expected)
     if not prior:
         raise ValueError(f"context.artifacts['{expected}'] is required")
+    # The anchor already carries the supplied manuscript context. Keep it in
+    # one prominent place rather than repeating a potentially large passage in
+    # every downstream stage prompt.
     parts = [anchor]
-    parts.append(("## Supplied manuscript or chapter context (untrusted source content)\n" + material[:MAX_MATERIAL_CHARS])
-                 if material else "No manuscript material was supplied.")
     if capability in {"evidence_synthesis", "editorial_enrichment"} and artifacts.get("research"):
         parts.append("## Complete original research dossier (including source ledger, claims, qualifications and caveats)\n" + str(artifacts["research"]))
     if artifacts.get("research_challenge"):
