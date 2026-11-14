@@ -12,6 +12,28 @@ from ui import bridge, app_ui
 
 
 class ResearchChallengeTests(unittest.TestCase):
+    def test_mission_coverage_instructions_and_regression_fixtures(self):
+        root = Path(__file__).parent
+        source_skill = (root.parent / "skills/source-research/SKILL.md").read_text(encoding="utf-8")
+        review_skill = (root.parent / "skills/adversarial-review/SKILL.md").read_text(encoding="utf-8")
+
+        self.assertLess(source_skill.index("Before selecting research perspectives"), source_skill.index("Then identify **4–6 distinct perspectives**"))
+        self.assertIn("reasonable evidence coverage across the principal dimensions", source_skill)
+        self.assertIn("competing explanations", source_skill)
+        self.assertIn("do not impose quotas", source_skill)
+        self.assertIn("name the gap plainly", source_skill)
+        self.assertIn("## Mission Coverage Assessment", review_skill)
+        for required_assessment in ("dimensions adequately researched", "important dimensions neglected", "supporting topics that have displaced"):
+            self.assertIn(required_assessment, review_skill)
+
+        organisational = (root / "fixtures/mission-coverage-organisational.md").read_text(encoding="utf-8")
+        technical = (root / "fixtures/mission-coverage-technical.md").read_text(encoding="utf-8")
+        self.assertIn("managerial authority, incentives and cross-functional workflows", organisational)
+        self.assertIn("no substantive evidence", organisational)
+        self.assertIn("supporting topics displacing the original question", organisational.lower())
+        self.assertIn("directly answering the technical inquiry", technical)
+        self.assertIn("None identified", technical)
+
     def test_mission_callbacks_match_declared_output_counts_on_error_paths(self):
         tree = ast.parse(Path(app_ui.__file__).read_text(encoding="utf-8"))
         declared = {}
