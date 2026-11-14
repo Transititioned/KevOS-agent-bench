@@ -275,6 +275,31 @@ class ResearchChallengeTests(unittest.TestCase):
         self.assertNotIn("Unrelated claim", extracted)
         self.assertIn("could be extracted", extracted)
 
+    def test_contrarian_extractor_accepts_standalone_plain_text_heading(self):
+        dossier = """# Research
+Other research findings.
+
+Contrarian perspectives
+- The 70% transformation-failure statistic is questionable.
+- Established frameworks can work when adapted to the organisation's operating model.
+- Some failures result from genuine legacy, data and capability constraints, not defective governance.
+
+## Research Gaps
+Do not include this later section.
+"""
+        extracted = bridge.extract_contrarian_perspectives(dossier)
+        self.assertIn("The 70% transformation-failure statistic is questionable.", extracted)
+        self.assertIn("adapted to the organisation's operating model", extracted)
+        self.assertIn("genuine legacy, data and capability constraints", extracted)
+        self.assertNotIn("Do not include this later section", extracted)
+
+    def test_contrarian_extractor_still_accepts_markdown_heading(self):
+        extracted = bridge.extract_contrarian_perspectives(
+            "## Contrarian Perspectives\nDistinct disagreement.\n\n## Next Section\nLater content."
+        )
+        self.assertIn("Distinct disagreement.", extracted)
+        self.assertNotIn("Later content.", extracted)
+
 
 if __name__ == "__main__":
     unittest.main()

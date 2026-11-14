@@ -74,11 +74,21 @@ def extract_contrarian_perspectives(research_content: str) -> str:
     target_start = None
     target_level = None
 
+    def section_heading(line: str) -> tuple[int, str] | None:
+        stripped = line.strip()
+        markdown = re.match(r"^(#{1,4})\s+(.*)$", stripped)
+        if markdown:
+            return len(markdown.group(1)), markdown.group(2).lower()
+        # Some research responses use a standalone plain-text heading.
+        plain = re.sub(r"\s*:\s*$", "", stripped).lower()
+        if plain in {"contrarian perspectives", "contrarian perspective"}:
+            return 2, plain
+        return None
+
     for idx, line in enumerate(lines):
-        m = re.match(r"^(#{1,4})\s+(.*)$", line.strip())
-        if m:
-            level = len(m.group(1))
-            heading_text = m.group(2).lower()
+        heading = section_heading(line)
+        if heading:
+            level, heading_text = heading
             if any(term in heading_text for term in [
                 "counterargument", "contrarian", "opposing", "disagreement", 
                 "edge case", "practitioner viewpoint", "practitioner perspective"
@@ -90,8 +100,8 @@ def extract_contrarian_perspectives(research_content: str) -> str:
     if target_start is not None and target_level is not None:
         extracted = [lines[target_start]]
         for line in lines[target_start + 1:]:
-            m = re.match(r"^(#{1,4})\s+(.*)$", line.strip())
-            if m and len(m.group(1)) <= target_level:
+            heading = section_heading(line)
+            if heading and heading[0] <= target_level:
                 break
             extracted.append(line)
         section_text = "\n".join(extracted).strip()
