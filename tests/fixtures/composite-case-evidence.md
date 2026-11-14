@@ -1,0 +1,1 @@
+An explicitly composite teaching case describes a fictional organisation whose AI adoption improves individual task speed while worsening cross-functional handoffs. The vignette synthesizes plausible mechanisms but reports no real deployment, field measurement or independently verified outcome.

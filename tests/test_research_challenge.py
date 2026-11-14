@@ -140,6 +140,156 @@ class ResearchChallengeTests(unittest.TestCase):
         self.assertNotIn("ranked conclusion", context)
         self.assertNotIn("Distinctive Research Findings", context)
 
+    def test_mission_anchor_is_verbatim_and_prominent_in_every_stage(self):
+        contexts = []
+        research = "Research conclusion: technical tangent. https://example.org/source"
+        challenge = "Decision: SKIP\nWhy it matters: No unresolved direct lead."
+
+        def fake_run(capability, context, **kwargs):
+            contexts.append((capability, context))
+            content = {"research": research, "research_challenge": challenge}.get(capability, capability)
+            return {"artifact": {"content": content, "path": "unused"}, "metadata": {}}
+
+        directions = ["How does individual AI use affect authority?", "Trace impacts on cross-functional workflows."]
+        with patch.object(harness, "run_capability", side_effect=fake_run):
+            harness.run_book_mission(material="Chapter draft context", topic="Individual adoption versus collective capability",
+                research_queries=directions, enable_research_challenge=True)
+
+        expected_stages = {"research", "research_challenge", "adversarial_review", "evidence_synthesis", "editorial_enrichment"}
+        self.assertEqual({name for name, _ in contexts}, expected_stages)
+        for capability, context in contexts:
+            with self.subTest(stage=capability):
+                rendered = harness._context_text(context, capability)
+                self.assertTrue(rendered.startswith("## MISSION ANCHOR"))
+                self.assertIn("Individual adoption versus collective capability", rendered)
+                for direction in directions:
+                    self.assertIn(direction, rendered)
+                self.assertIn("Chapter draft context", rendered)
+        self.assertEqual(len({harness._mission_anchor(context) for _, context in contexts}), 1)
+        challenge_context = harness._context_text(dict(contexts)["research_challenge"], "research_challenge")
+        self.assertIn("https://example.org/source", challenge_context)
+        self.assertNotIn("technical tangent", challenge_context)
+        self.assertNotIn("Research conclusion", challenge_context)
+
+    def test_challenge_adjacency_and_invalid_fields_safely_skip_paid_followup(self):
+        cases = {
+            "adjacent": ("Decision: INVESTIGATE\nSelected finding: Temporal retrieval design\nResearch question: "
+                "How fresh is enterprise knowledge?\nRelevance to original mission: ADJACENT\n"
+                "Expected impact on original question: This may change temporal retrieval design.\n"
+                "Why it matters: The finding is useful for knowledge infrastructure.\nKnown limitations: Few cases", "ADJACENT"),
+            "missing": ("Decision: INVESTIGATE\nSelected finding: A lead\nResearch question: Check it\n"
+                "Why it matters: Could be useful.", "missing required field"),
+            "invalid": ("Decision: INVESTIGATE\nSelected finding: A lead\nResearch question: Check it\n"
+                "Relevance to original mission: MAYBE\nExpected impact on original question: Unclear.\n"
+                "Why it matters: Unclear.", "must be DIRECT"),
+        }
+        for name, (decision, expected_reason) in cases.items():
+            with self.subTest(case=name):
+                lead = harness._challenge_lead(decision)
+                self.assertFalse(lead["investigate"])
+                self.assertIn(expected_reason.lower(), lead["skip_reason"].lower())
+                calls = []
+
+                def fake_run(capability, context, **kwargs):
+                    calls.append(capability)
+                    content = decision if capability == "research_challenge" else capability
+                    return {"artifact": {"content": content, "path": "unused"}, "metadata": {}}
+
+                with patch.object(harness, "run_capability", side_effect=fake_run):
+                    result = harness.run_book_mission(topic="Original question", enable_research_challenge=True,
+                        enable_selective_re_research=True)
+                self.assertNotIn("targeted_research", calls)
+                self.assertIn(expected_reason.split()[0].lower(), result["re_research_skip_reason"].lower())
+
+    def test_saved_drift_example_fails_closed_without_new_fields(self):
+        saved_selection = (Path(__file__).parent / "fixtures/research-challenge-adjacent-selection.md").read_text(encoding="utf-8")
+        lead = harness._challenge_lead(saved_selection)
+        self.assertFalse(lead["investigate"])
+        self.assertIn("Relevance to original mission", lead["skip_reason"])
+
+    def test_direct_finding_can_launch_targeted_research(self):
+        direct = ("Decision: INVESTIGATE\nSelected finding: Data quality prevents cross-team coordination\n"
+                  "Research question: Does master-data fragmentation materially affect collaboration?\n"
+                  "Relevance to original mission: DIRECT\n"
+                  "Expected impact on original question: It may materially change the explanation for collaboration failures.\n"
+                  "Why it matters: It may materially connect individual productivity gains to collective workflow outcomes.\n"
+                  "Known limitations: Evidence is case-based.")
+        calls = []
+
+        def fake_run(capability, context, **kwargs):
+            calls.append((capability, context))
+            return {"artifact": {"content": direct if capability == "research_challenge" else capability, "path": "unused"}, "metadata": {}}
+
+        with patch.object(harness, "run_capability", side_effect=fake_run):
+            harness.run_book_mission(topic="Individual AI adoption and collective capability",
+                research_queries=["cross-functional workflows"], enable_research_challenge=True,
+                enable_selective_re_research=True)
+        self.assertIn("targeted_research", [name for name, _ in calls])
+        target_context = next(context for name, context in calls if name == "targeted_research")
+        self.assertEqual(target_context["relevance"], "DIRECT")
+        self.assertIn("Individual AI adoption and collective capability",
+            harness._context_text(target_context, "targeted_research"))
+
+    def test_supporting_finding_requires_and_accepts_explicit_material_effect(self):
+        fields = ("Decision: INVESTIGATE\nSelected finding: Workflow handoffs depend on shared context\n"
+                  "Research question: Does the contributing condition alter team outcomes?\n"
+                  "Relevance to original mission: SUPPORTING\n")
+        insufficient = fields + "Expected impact on original question: It may be relevant.\nWhy it matters: Interesting evidence."
+        self.assertFalse(harness._challenge_lead(insufficient)["investigate"])
+        sufficient = fields + ("Expected impact on original question: This may materially change the explanation of team outcomes.\n"
+            "Why it matters: This materially affects whether individual productivity becomes collective capability.\nKnown limitations: One context.")
+        self.assertTrue(harness._challenge_lead(sufficient)["investigate"])
+
+    def test_adjacent_findings_reach_synthesis_and_editorial_contexts(self):
+        adjacent = "ADJACENT finding: temporal retrieval governs knowledge freshness; retain for a future chapter."
+        calls = []
+
+        def fake_run(capability, context, **kwargs):
+            calls.append((capability, context))
+            content = adjacent if capability == "research_challenge" else capability
+            return {"artifact": {"content": content, "path": "unused"}, "metadata": {}}
+
+        with patch.object(harness, "run_capability", side_effect=fake_run):
+            harness.run_book_mission(topic="Individual adoption and collaboration", enable_research_challenge=True)
+        for stage in ("evidence_synthesis", "editorial_enrichment"):
+            context = next(ctx for name, ctx in calls if name == stage)
+            self.assertIn(adjacent, "\n".join(context["artifacts"].values()))
+
+    def test_composite_case_provenance_instruction_reaches_review_and_synthesis(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            fixture = Path(__file__).parent / "fixtures/composite-case-evidence.md"
+            composite = fixture.read_text(encoding="utf-8")
+            for capability in ("adversarial_review", "evidence_synthesis"):
+                skill_path = root / "skills" / capability.replace("_", "-") / "SKILL.md"
+                skill_path.parent.mkdir(parents=True, exist_ok=True)
+                actual_skill = harness.ROOT / "skills" / capability.replace("_", "-") / "SKILL.md"
+                skill_path.write_text(actual_skill.read_text(encoding="utf-8"), encoding="utf-8")
+            prompts = []
+
+            def fake_response(prompt, *args, **kwargs):
+                prompts.append(prompt)
+                return "The composite vignette is illustrative and does not establish measured field outcomes."
+
+            with patch.object(harness, "ROOT", root), patch.object(harness, "_response", side_effect=fake_response):
+                for capability in ("adversarial_review", "evidence_synthesis"):
+                    harness.run_capability(capability, {"topic": "AI adoption and collaboration", "artifacts": {
+                        "research": composite, "adversarial_review": "Review", "consolidated_findings": "Synthesis",
+                    }}, run_id="composite-test")
+            self.assertEqual(len(prompts), 2)
+            for prompt in prompts:
+                self.assertIn("An explicitly composite teaching case", prompt)
+                self.assertIn("independently verified deployments", prompt)
+                self.assertIn("measured field outcomes", prompt)
+
+    def test_offline_pipeline_does_not_call_response_api(self):
+        def fake_run(capability, context, **kwargs):
+            return {"artifact": {"content": capability, "path": "unused"}, "metadata": {}}
+
+        with patch.object(harness, "run_capability", side_effect=fake_run), patch.object(harness, "_response") as response:
+            harness.run_book_mission(topic="Offline regression", enable_research_challenge=True)
+        response.assert_not_called()
+
     def test_challenge_uses_one_mocked_web_response_and_returns_usage(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -212,7 +362,12 @@ This later section must not appear in the Contrarian tab.
             root = Path(tmp)
             calls = []
             research = "# Research\n## Source Ledger\nhttps://example.org/primary\n## Claims\nClaim with caveat."
-            challenge = "Decision: INVESTIGATE\nSelected finding: A contested implementation result\nResearch question: Does it replicate?\nWhy it matters: Reader relevance\nKnown limitations: Single-site evidence"
+            challenge = ("Decision: INVESTIGATE\nSelected finding: A contested implementation result\n"
+                         "Research question: Does it materially change the original explanation?\n"
+                         "Relevance to original mission: DIRECT\n"
+                         "Expected impact on original question: It may materially change the explanation.\n"
+                         "Why it matters: It may materially alter the original problem's causal account.\n"
+                         "Known limitations: Single-site evidence")
             targeted = "## Targeted Research Investigation\nNew source https://example.org/second\nContradicts the first study.\nLimited to one site."
             synthesis = "# Consolidated Findings\n## Contradictions\nThe sources disagree; both are single-site and require qualification."
 
@@ -258,7 +413,9 @@ This later section must not appear in the Contrarian tab.
 
     def test_selective_reresearch_failure_is_reported_and_synthesis_still_runs(self):
         calls = []
-        challenge = "Decision: INVESTIGATE\nSelected finding: Lead\nResearch question: Check it"
+        challenge = ("Decision: INVESTIGATE\nSelected finding: Lead\nResearch question: Check it\n"
+                     "Relevance to original mission: DIRECT\nExpected impact on original question: It may change the conclusion.\n"
+                     "Why it matters: It could change the original explanation.\nKnown limitations: None")
 
         def fake_run(capability, context, **kwargs):
             calls.append(capability)
@@ -275,9 +432,11 @@ This later section must not appear in the Contrarian tab.
         self.assertEqual(result["targeted_research_error"], "targeted request failed")
 
     def test_selective_decision_parsing_and_complete_handoff(self):
-        lead = harness._challenge_lead("Decision: INVESTIGATE\nSelected finding: X\nResearch question: Y")
+        lead = harness._challenge_lead("Decision: INVESTIGATE\nSelected finding: X\nResearch question: Y\n"
+            "Relevance to original mission: DIRECT\nExpected impact on original question: It may change the conclusion.\n"
+            "Why it matters: It challenges the existing explanation.\nKnown limitations: Limited evidence")
         self.assertEqual(lead["question"], "Y")
-        self.assertIsNone(harness._challenge_lead("Decision: SKIP\nSelected finding: None\nResearch question: None"))
+        self.assertFalse(harness._challenge_lead("Decision: SKIP\nSelected finding: None\nResearch question: None")["investigate"])
         long_evidence = "# Research\n" + ("evidence " * 2500) + "\n## Source Ledger\nCOMPLETE_SOURCE_URL"
         handed = harness._context_text({"artifacts": {"research": long_evidence,
             "adversarial_review": "Review"}}, "editorial_enrichment")

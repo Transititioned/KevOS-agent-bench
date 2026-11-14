@@ -5,6 +5,8 @@ description: Research manuscript topics using practitioner sources, primary rese
 
 # Source research
 
+Treat the Mission Anchor as the authoritative statement of the original problem. Keep central-problem evidence distinct from useful adjacent discoveries. For each major finding (not every citation), classify it **DIRECT** (materially explains, challenges or changes the original problem), **SUPPORTING** (explains a relevant contributing condition or implementation choice), or **ADJACENT** (useful but primarily addresses another problem). Briefly explain its causal or decision relevance to the Mission Anchor. Preserve credible adjacent findings for possible reuse elsewhere; do not discard them or force them into the central thesis. Technical evidence may be DIRECT when it genuinely explains the original problem; do not apply a technology-versus-people filter.
+
 Research the topic with web search, preserving a practitioner-first, multilingual and contrarian approach. Identify the research question and intended outcome before searching. Check what mainstream sources already say and where coverage is saturated; then seek missing perspectives, credible disconfirming evidence, operational detail and original sources behind useful indirect leads. Search in English and in relevant languages when useful, investigating international sources in their original languages where practical. Do not force every mission to search every source category: choose methods that fit the topic and available research budget.
 
 ## Perspective-Guided Discovery
