@@ -76,13 +76,35 @@ def extract_contrarian_perspectives(research_content: str) -> str:
 
     plain_section_titles = {
         "research", "research overview", "executive summary", "key findings",
+        "what mainstream sources say", "under-covered practitioner/operational angles",
         "distinctive research findings", "short evidence-based synthesis",
         "evidence-based synthesis", "synthesis", "conclusion", "conclusions",
-        "research gaps", "limitations", "methodology", "source ledger", "sources",
+        "verified claims", "hypotheses and inferences", "hypotheses & inferences",
+        "research gaps", "implications for a potential book chapter", "limitations",
+        "methodology", "source ledger", "sources", "practitioner viewpoints",
         "mainstream findings", "mainstream conclusion", "practitioner disagreements",
         "counterarguments and practitioner viewpoints", "contrarian perspectives",
         "contrarian perspective", "opposing perspectives", "disagreements",
     }
+    contrarian_section_titles = (
+        "counterarguments and practitioner viewpoints", "counterarguments",
+        "contrarian perspectives", "contrarian perspective", "opposing perspectives",
+        "practitioner disagreements", "practitioner viewpoints",
+        "practitioner perspectives", "disagreements", "edge cases",
+    )
+
+    def normalize_title(title: str) -> str:
+        title = re.sub(r"[*_`~]", "", title)
+        title = re.sub(r"^\d+(?:\.\d+)*[.)]?\s+", "", title)
+        title = title.replace("\u2010", "-").replace("\u2011", "-").replace("\u2012", "-")
+        title = title.replace("\u2013", "-").replace("\u2014", "-").lower()
+        return re.sub(r"\s+", " ", title).strip()
+
+    def begins_with_heading(title: str, known_titles: set[str] | tuple[str, ...]) -> bool:
+        for known in known_titles:
+            if title == known or title.startswith(known + " ") or title.startswith(known + ":"):
+                return True
+        return False
 
     def section_heading(line: str) -> tuple[int, str] | None:
         stripped = line.strip()
@@ -93,10 +115,11 @@ def extract_contrarian_perspectives(research_content: str) -> str:
             # Plain-text section titles are recognized only when the whole line
             # matches a known heading, so body prose cannot truncate extraction.
             level, title = 2, stripped
-        title = re.sub(r"[*_`~]", "", title)
-        title = re.sub(r"^\d+(?:\.\d+)*[.)]?\s+", "", title)
-        title = re.sub(r"\s*[:.!?]+\s*$", "", title).strip().lower()
-        if markdown or title in plain_section_titles:
+        title = normalize_title(title)
+        # Parenthetical descriptions, introductory text after a dash, or a
+        # colon may follow a heading on the same line in generated dossiers.
+        boundary_title = re.split(r"\s*(?:[:(]|\s[-:])", title, maxsplit=1)[0].rstrip(" .!?-")
+        if markdown or begins_with_heading(boundary_title, plain_section_titles):
             return level, title
         return None
 
@@ -104,10 +127,7 @@ def extract_contrarian_perspectives(research_content: str) -> str:
         heading = section_heading(line)
         if heading:
             level, heading_text = heading
-            if any(term in heading_text for term in (
-                "counterargument", "contrarian", "opposing", "disagreement",
-                "edge case", "practitioner viewpoint", "practitioner perspective",
-            )):
+            if begins_with_heading(heading_text, contrarian_section_titles):
                 target_start = idx
                 target_level = level
                 break

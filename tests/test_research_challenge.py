@@ -344,12 +344,38 @@ Later research content is outside the extracted section.
         self.assertNotIn("The mainstream conclusion", extracted)
         self.assertNotIn("Later research content", extracted)
 
+    def test_contrarian_heading_with_introductory_text_on_same_line(self):
+        dossier = """Contrarian perspectives (genuine disagreements, failures, and limits)
+Credible alternative: legacy data quality can be causal.
+
+Distinctive research findings (prioritized evidence and implications)
+This next section must be excluded.
+"""
+        extracted = bridge.extract_contrarian_perspectives(dossier)
+        self.assertIn("genuine disagreements, failures, and limits", extracted)
+        self.assertIn("legacy data quality can be causal", extracted)
+        self.assertNotIn("This next section", extracted)
+
     def test_contrarian_extractor_fallback_is_explicit_when_section_missing(self):
         extracted = bridge.extract_contrarian_perspectives(
             "## Distinctive research findings\nMainstream finding only.\n\nShort evidence-based synthesis\nSummary."
         )
         self.assertIn("No separately headed contrarian perspectives section", extracted)
         self.assertNotIn("Mainstream finding", extracted)
+
+    def test_contrarian_extractor_captures_complete_sections_from_two_saved_outputs(self):
+        fixtures = Path(__file__).parent / "fixtures"
+        # Verbatim section excerpts from two saved enterprise transformation
+        # research runs; each fixture includes its next section heading.
+        for filename in ("research-contrarian-enterprise-1.md", "research-contrarian-enterprise-2.md"):
+            with self.subTest(fixture=filename):
+                dossier = (fixtures / filename).read_text(encoding="utf-8").rstrip()
+                expected_section = dossier.rsplit("\n\n", 1)[0]
+                extracted = bridge.extract_contrarian_perspectives(dossier)
+                section_text = extracted.split("\n\n", 1)[1]
+                self.assertEqual(section_text, expected_section)
+                next_heading = dossier.rsplit("\n", 1)[-1]
+                self.assertNotIn(next_heading, section_text)
 
 
 if __name__ == "__main__":
