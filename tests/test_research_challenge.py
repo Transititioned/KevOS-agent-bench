@@ -2,15 +2,61 @@ from __future__ import annotations
 
 import tempfile
 import unittest
+import ast
 from types import SimpleNamespace
 from pathlib import Path
 from unittest.mock import Mock, patch
 
 from scripts import kevos_book_harness as harness
-from ui import bridge
+from ui import bridge, app_ui
 
 
 class ResearchChallengeTests(unittest.TestCase):
+    def test_mission_callbacks_match_declared_output_counts_on_error_paths(self):
+        tree = ast.parse(Path(app_ui.__file__).read_text(encoding="utf-8"))
+        declared = {}
+        for node in ast.walk(tree):
+            if not isinstance(node, ast.Call) or not isinstance(node.func, ast.Attribute) or node.func.attr != "click":
+                continue
+            keywords = {keyword.arg: keyword.value for keyword in node.keywords}
+            fn = keywords.get("fn")
+            outputs = keywords.get("outputs")
+            if isinstance(fn, ast.Name) and fn.id in {"handle_load_run", "handle_run_mission"}:
+                declared[fn.id] = len(outputs.elts)
+        self.assertEqual(declared, {"handle_run_mission": 12, "handle_load_run": 10})
+        functions = {node.name: node for node in ast.walk(tree) if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))}
+        for name, expected in declared.items():
+            with self.subTest(callback=name):
+                calls = [node for node in ast.walk(functions[name]) if isinstance(node, ast.Call)
+                         and isinstance(node.func, ast.Name) and node.func.id == "_error_callback_result"]
+                self.assertTrue(calls)
+                self.assertTrue(all(isinstance(call.args[1], ast.Constant) and call.args[1].value == expected for call in calls))
+                self.assertEqual(len(app_ui._error_callback_result("<div>Load failed</div>", expected)), expected)
+
+    def test_successful_callback_tuples_match_declared_output_counts(self):
+        tree = ast.parse(Path(app_ui.__file__).read_text(encoding="utf-8"))
+        for name, expected in (("handle_load_run", 10), ("handle_run_mission", 12)):
+            with self.subTest(callback=name):
+                function = next(node for node in ast.walk(tree) if isinstance(node, ast.FunctionDef) and node.name == name)
+                return_tuples = [node.value for node in ast.walk(function) if isinstance(node, ast.Return) and isinstance(node.value, ast.Tuple)]
+                self.assertTrue(return_tuples)
+                self.assertTrue(all(len(value.elts) == expected for value in return_tuples))
+
+    def test_targeted_research_prompt_requests_only_focused_investigation(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            skill_path = root / "skills/targeted-research/SKILL.md"
+            skill_path.parent.mkdir(parents=True)
+            skill_path.write_text("Focused investigation skill", encoding="utf-8")
+            with patch.object(harness, "ROOT", root), patch.object(harness, "_response", return_value="## Targeted Research Investigation\nEvidence.") as response:
+                harness.run_capability("targeted_research", {
+                    "topic": "Question", "research_question": "Does it replicate?",
+                    "artifacts": {"research": "Research", "research_challenge": "Challenge"},
+                }, run_id="targeted-prompt")
+            prompt = response.call_args.args[0]
+            self.assertIn("## Targeted Research Investigation", prompt)
+            self.assertNotIn("Then `## Consolidated Findings`", prompt)
+
     def test_openai_client_uses_configured_timeout_and_retry_limit(self):
         constructor = Mock(return_value=object())
         with patch.object(harness, "load_dotenv"), patch.dict("sys.modules", {"openai": SimpleNamespace(OpenAI=constructor)}), patch.dict(
@@ -180,6 +226,21 @@ class ResearchChallengeTests(unittest.TestCase):
             self.assertEqual([name for name, _ in calls].count("targeted_research"), 1)
             self.assertIn("consolidated_findings", result["artifacts"])
             self.assertEqual(loaded["artifacts"]["consolidated_findings"]["content"], synthesis)
+            synthesis_context = next(context for name, context in calls if name == "evidence_synthesis")
+            self.assertEqual(set(synthesis_context["artifacts"]), {
+                "research", "research_challenge", "targeted_research", "adversarial_review"})
+
+    def test_synthesis_receives_research_and_review_when_optional_stages_are_disabled(self):
+        captured = {}
+
+        def fake_run(capability, context, **kwargs):
+            if capability == "evidence_synthesis":
+                captured.update(context["artifacts"])
+            return {"artifact": {"content": capability, "path": "unused"}, "metadata": {}}
+
+        with patch.object(harness, "run_capability", side_effect=fake_run):
+            harness.run_book_mission(topic="Question")
+        self.assertEqual(set(captured), {"research", "adversarial_review"})
 
     def test_selective_reresearch_failure_is_reported_and_synthesis_still_runs(self):
         calls = []

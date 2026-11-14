@@ -13,6 +13,11 @@ from ui.bridge import (
 )
 
 
+def _error_callback_result(message: str, output_count: int) -> tuple:
+    """Return an error banner plus unchanged values for the remaining outputs."""
+    return (message, *(gr.update() for _ in range(output_count - 1)))
+
+
 def build_app() -> gr.Blocks:
     """Build the KevOS Agent Bench Gradio Blocks application."""
     initial_runs = list_saved_runs()
@@ -223,20 +228,8 @@ def build_app() -> gr.Blocks:
                 clean_material = (material or "").strip()
                 clean_topic = (topic or "").strip()
                 if not clean_material and not clean_topic:
-                    return (
-                        '<div class="status-box status-error">❌ <strong>Error:</strong> Enter a research topic or provide book section material to start a mission.</div>',
-                        gr.update(),
-                        gr.update(),
-                        gr.update(),
-                        gr.update(),
-                        gr.update(),
-                        gr.update(),
-                        gr.update(),
-                        gr.update(),
-                        gr.update(),
-                        gr.update(),
-                        gr.update(),
-                    )
+                    return _error_callback_result(
+                        '<div class="status-box status-error">❌ <strong>Error:</strong> Enter a research topic or provide book section material to start a mission.</div>', 12)
 
                 # Invoke backend
                 result = run_mission_backend(
@@ -251,20 +244,7 @@ def build_app() -> gr.Blocks:
                 if not result.get("success"):
                     err_msg = result.get("error", "Unknown error")
                     status_html = f'<div class="status-box status-error">❌ <strong>Mission Failed:</strong> {err_msg}</div>'
-                    return (
-                        status_html,
-                        gr.update(),
-                        gr.update(),
-                        gr.update(),
-                        gr.update(),
-                        gr.update(),
-                        gr.update(),
-                        gr.update(),
-                        gr.update(),
-                        gr.update(),
-                        gr.update(),
-                        gr.update(),
-                    )
+                    return _error_callback_result(status_html, 12)
 
                 run_id = result.get("run_id", "")
                 artifacts = result.get("artifacts", {})
@@ -341,11 +321,8 @@ def build_app() -> gr.Blocks:
                     dl_update,
                 )
             except Exception as exc:
-                return (
-                    f'<div class="status-box status-error">❌ <strong>Error:</strong> {exc}</div>',
-                    gr.update(), gr.update(), gr.update(), gr.update(), gr.update(),
-                    gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(),
-                )
+                return _error_callback_result(
+                    f'<div class="status-box status-error">❌ <strong>Error:</strong> {exc}</div>', 12)
 
         run_btn.click(
             fn=handle_run_mission,
@@ -371,38 +348,14 @@ def build_app() -> gr.Blocks:
             try:
                 clean_id = (run_id or "").strip()
                 if not clean_id:
-                    return (
-                        '<div class="status-box status-error">❌ <strong>Error:</strong> Please specify a Run ID to load.</div>',
-                        gr.update(),
-                        gr.update(),
-                        gr.update(),
-                        gr.update(),
-                        gr.update(),
-                        gr.update(),
-                        gr.update(),
-                        gr.update(),
-                        gr.update(),
-                        gr.update(),
-                        gr.update(),
-                        gr.update(),
-                        gr.update(),
-                    )
+                    return _error_callback_result(
+                        '<div class="status-box status-error">❌ <strong>Error:</strong> Please specify a Run ID to load.</div>', 10)
 
                 result = load_previous_run(clean_id)
                 if not result.get("success"):
                     err_msg = result.get("error", "Unknown error")
-                    return (
-                        f'<div class="status-box status-error">❌ <strong>Load Failed:</strong> {err_msg}</div>',
-                        gr.update(),
-                        gr.update(),
-                        gr.update(),
-                        gr.update(),
-                        gr.update(),
-                        gr.update(),
-                        gr.update(),
-                        gr.update(),
-                        gr.update(),
-                    )
+                    return _error_callback_result(
+                        f'<div class="status-box status-error">❌ <strong>Load Failed:</strong> {err_msg}</div>', 10)
 
                 artifacts = result.get("artifacts", {})
                 download_path = result.get("download_path")
@@ -443,10 +396,8 @@ def build_app() -> gr.Blocks:
                     dl_update,
                 )
             except Exception as exc:
-                return (
-                    f'<div class="status-box status-error">❌ <strong>Load Failed:</strong> {exc}</div>',
-                    gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(),
-                )
+                return _error_callback_result(
+                    f'<div class="status-box status-error">❌ <strong>Load Failed:</strong> {exc}</div>', 10)
 
         load_btn.click(
             fn=handle_load_run,
